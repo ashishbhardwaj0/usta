@@ -1,12 +1,382 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My GitHub Page</title>
-  </head>
-  <body>
-    <h1>Hello from GitHub Pages 👋</h1>
-    <p>This is my site.</p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dynamic Tennis Rating Estimator (Singles / Doubles)</title>
+  <style>
+    :root { --bg:#0b0f17; --card:#121a27; --muted:#93a4bd; --text:#e8eef8; --accent:#7aa2ff; --line:#24324a; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    .wrap { max-width: 1080px; margin: 24px auto; padding: 0 16px 28px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    p { margin: 8px 0 0; color: var(--muted); line-height: 1.35; }
+    .grid { display:grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
+    @media (min-width: 980px) { .grid { grid-template-columns: 1.15fr 0.85fr; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    .row { display:flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1 1 180px; }
+    label { display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    input, select, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0e1522;
+      color: var(--text);
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    .small { font-size: 12px; color: var(--muted); }
+    .btns { display:flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    button { cursor: pointer; }
+    button.primary { border-color: rgba(122,162,255,.55); background: rgba(122,162,255,.12); }
+    button:hover { filter: brightness(1.08); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .out { display:grid; gap: 10px; margin-top: 10px; }
+    .pill { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: #0e1522; }
+    .pill h3 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+    .pill .val { font-size: 18px; }
+    .hr { height:1px; background: var(--line); margin: 12px 0; }
+    details { border: 1px solid var(--line); border-radius: 12px; padding: 10px; background:#0e1522; }
+    summary { cursor:pointer; color: var(--muted); font-size: 13px; }
+    .status { margin-top:10px; font-size:12px; color: var(--muted); }
+    .err { color:#ffb4b4; }
+    .ok { color:#a6f3b1; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Dynamic Tennis Rating Estimator — Singles / Doubles</h1>
+    <p class="small">If the buttons don’t do anything, check the “Status” box — it will show the exact JS error message.</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="row">
+          <div>
+            <label>Match Type</label>
+            <select id="matchType">
+              <option value="singles">Singles</option>
+              <option value="doubles" selected>Doubles</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Update Strength (β)</label>
+            <input id="beta" type="number" step="0.01" value="0.25" />
+          </div>
+
+          <div>
+            <label>MTB Tightness (0–1)</label>
+            <input id="mtbTightness" type="number" step="0.05" min="0" max="1" value="1.0" />
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <label>Side A Player 1 Dynamic</label>
+            <input id="a1" type="number" step="0.01" placeholder="e.g., 3.84" />
+          </div>
+          <div id="a2Wrap">
+            <label>Side A Player 2 Dynamic (doubles)</label>
+            <input id="a2" type="number" step="0.01" placeholder="e.g., 3.79" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Side B Player 1 Dynamic</label>
+            <input id="b1" type="number" step="0.01" placeholder="e.g., 3.60" />
+          </div>
+          <div id="b2Wrap">
+            <label>Side B Player 2 Dynamic (doubles)</label>
+            <input id="b2" type="number" step="0.01" placeholder="e.g., 3.87" />
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <div>
+            <label>Set 1 Games — Side A</label>
+            <input id="s1a" type="number" step="1" min="0" max="7" value="6" />
+          </div>
+          <div>
+            <label>Set 1 Games — Side B</label>
+            <input id="s1b" type="number" step="1" min="0" max="7" value="4" />
+          </div>
+
+          <div>
+            <label>Set 2 Games — Side A</label>
+            <input id="s2a" type="number" step="1" min="0" max="7" value="2" />
+          </div>
+          <div>
+            <label>Set 2 Games — Side B</label>
+            <input id="s2b" type="number" step="1" min="0" max="7" value="6" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Match Tiebreak Winner (3rd set is always 1–0)</label>
+            <select id="mtbWinner">
+              <option value="A">Side A wins MTB (1–0)</option>
+              <option value="B" selected>Side B wins MTB (0–1)</option>
+              <option value="none">No MTB / straight sets</option>
+            </select>
+          </div>
+        </div>
+
+        <details style="margin-top:10px;">
+          <summary>Advanced weights (optional)</summary>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Bias (b0)</label>
+              <input id="b0" type="number" step="0.001" value="0.0610" />
+            </div>
+            <div>
+              <label>Score Direction (b_centered)</label>
+              <input id="bCentered" type="number" step="0.001" value="0.0341" />
+            </div>
+            <div>
+              <label>Strong Opponent Skew (b_maxOppDiff)</label>
+              <input id="bMaxOppDiff" type="number" step="0.001" value="0.2630" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Set Dominance (b_sumSetDiff)</label>
+              <input id="bSumSetDiff" type="number" step="0.001" value="0.2483" />
+            </div>
+            <div>
+              <label>MTB Penalty (b_mtb)</label>
+              <input id="bMtb" type="number" step="0.001" value="-0.0814" />
+            </div>
+            <div>
+              <label>Split Sets Penalty (b_flip)</label>
+              <input id="bFlip" type="number" step="0.001" value="-0.0814" />
+            </div>
+          </div>
+        </details>
+
+        <div class="btns">
+          <button type="button" class="primary" id="computeBtn">Compute</button>
+          <button type="button" id="resetBtn">Reset</button>
+        </div>
+
+        <div id="status" class="status mono">Status: ready</div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin:0 0 10px;font-size:16px;">Output</h2>
+
+        <div class="out">
+          <div class="pill">
+            <h3>Match Rating (Side A)</h3>
+            <div class="val mono" id="matchA">—</div>
+            <div class="small mono" id="matchAExplain"></div>
+          </div>
+
+          <div class="pill">
+            <h3>Match Rating (Side B)</h3>
+            <div class="val mono" id="matchB">—</div>
+            <div class="small mono" id="matchBExplain"></div>
+          </div>
+
+          <div class="pill">
+            <h3>Post-Match Dynamic</h3>
+            <div class="val mono" id="postOut">—</div>
+            <div class="small mono" id="postExplain"></div>
+          </div>
+
+          <div class="pill">
+            <h3>Diagnostics</h3>
+            <div class="small mono" id="diag">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ====== Robust init so buttons always work ====== */
+window.addEventListener("DOMContentLoaded", () => {
+  const el = (id) => document.getElementById(id);
+
+  const status = (msg, cls) => {
+    const s = el("status");
+    if (!s) return;
+    s.className = "status mono" + (cls ? (" " + cls) : "");
+    s.textContent = "Status: " + msg;
+  };
+
+  const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+  const round2 = (x) => (Math.round(x * 100) / 100).toFixed(2);
+  const safeNum = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  const avg = (arr) => arr.reduce((a,b)=>a+b,0) / arr.length;
+  const max = (arr) => arr.reduce((a,b)=>Math.max(a,b), -Infinity);
+
+  function syncUI() {
+    const isDoubles = el("matchType").value === "doubles";
+    el("a2Wrap").style.display = isDoubles ? "block" : "none";
+    el("b2Wrap").style.display = isDoubles ? "block" : "none";
+    if (!isDoubles) { el("a2").value = ""; el("b2").value = ""; }
+  }
+
+  function readWeights() {
+    return {
+      b0: safeNum(el("b0").value) ?? 0.0610,
+      bCentered: safeNum(el("bCentered").value) ?? 0.0341,
+      bMaxOppDiff: safeNum(el("bMaxOppDiff").value) ?? 0.2630,
+      bSumSetDiff: safeNum(el("bSumSetDiff").value) ?? 0.2483,
+      bMtb: safeNum(el("bMtb").value) ?? -0.0814,
+      bFlip: safeNum(el("bFlip").value) ?? -0.0814,
+    };
+  }
+
+  function actualShareFromScore(s1a, s1b, s2a, s2b, mtbWinner, mtbTightness) {
+    const gamesA = s1a + s2a;
+    const gamesB = s1b + s2b;
+    const total = gamesA + gamesB;
+
+    let shareA = total > 0 ? (gamesA / total) : 0.5;
+
+    const t = clamp(mtbTightness, 0, 1);
+    const mtbSwing = 0.02 + (1 - t) * 0.02; // [0.02..0.04]
+
+    let mtbAdjA = 0;
+    let mtbPlayed = 0;
+    if (mtbWinner === "A") { mtbAdjA = +mtbSwing; mtbPlayed = 1; }
+    if (mtbWinner === "B") { mtbAdjA = -mtbSwing; mtbPlayed = 1; }
+
+    shareA = clamp(shareA + mtbAdjA, 0, 1);
+    return { shareA, shareB: 1 - shareA, gamesA, gamesB, mtbAdjA, mtbPlayed };
+  }
+
+  function setDominanceNorm(s1a, s1b, s2a, s2b) {
+    const d1 = Math.abs(s1a - s1b);
+    const d2 = Math.abs(s2a - s2b);
+    return (d1 + d2) / 12.0;
+  }
+
+  function splitSets(s1a, s1b, s2a, s2b) {
+    const m1 = (s1a - s1b);
+    const m2 = (s2a - s2b);
+    return (m1 * m2 < 0) ? 1 : 0;
+  }
+
+  function matchRatingForSide(oppRatings, shareSide, domNorm, mtbPlayed, flip, w) {
+    const oppAvg = avg(oppRatings);
+    const maxOppDiff = (oppRatings.length >= 2) ? (max(oppRatings) - oppAvg) : 0.0;
+    const centered = shareSide - 0.5;
+
+    const residual =
+      w.b0 +
+      w.bCentered * centered +
+      w.bMaxOppDiff * maxOppDiff +
+      w.bSumSetDiff * domNorm +
+      w.bMtb * mtbPlayed +
+      w.bFlip * flip;
+
+    return { oppAvg, maxOppDiff, centered, residual, matchRating: oppAvg + residual };
+  }
+
+  function compute() {
+    const matchType = el("matchType").value;
+    const isDoubles = (matchType === "doubles");
+
+    const a1 = safeNum(el("a1").value);
+    const b1 = safeNum(el("b1").value);
+    const a2 = safeNum(el("a2").value);
+    const b2 = safeNum(el("b2").value);
+
+    if (a1 == null || b1 == null || (isDoubles && (a2 == null || b2 == null))) {
+      status("missing player ratings (fill all required fields)", "err");
+      return;
+    }
+
+    const beta = clamp(safeNum(el("beta").value) ?? 0.38, 0, 1);
+    const mtbTightness = clamp(safeNum(el("mtbTightness").value) ?? 0.6, 0, 1);
+
+    const s1a = clamp(safeNum(el("s1a").value) ?? 0, 0, 7);
+    const s1b = clamp(safeNum(el("s1b").value) ?? 0, 0, 7);
+    const s2a = clamp(safeNum(el("s2a").value) ?? 0, 0, 7);
+    const s2b = clamp(safeNum(el("s2b").value) ?? 0, 0, 7);
+    const mtbWinner = el("mtbWinner").value;
+
+    const A = isDoubles ? [a1, a2] : [a1];
+    const B = isDoubles ? [b1, b2] : [b1];
+
+    const w = readWeights();
+    const score = actualShareFromScore(s1a, s1b, s2a, s2b, mtbWinner, mtbTightness);
+    const domNorm = setDominanceNorm(s1a, s1b, s2a, s2b);
+    const flip = splitSets(s1a, s1b, s2a, s2b);
+
+    const Ares = matchRatingForSide(B, score.shareA, domNorm, score.mtbPlayed, flip, w);
+    const Bres = matchRatingForSide(A, score.shareB, domNorm, score.mtbPlayed, flip, w);
+
+    const upd = (oldR, mR) => oldR + beta * (mR - oldR);
+    const postA = A.map(r => upd(r, Ares.matchRating));
+    const postB = B.map(r => upd(r, Bres.matchRating));
+
+    el("matchA").textContent = round2(Ares.matchRating);
+    el("matchB").textContent = round2(Bres.matchRating);
+
+    el("matchAExplain").textContent =
+      `oppAvg=${round2(Ares.oppAvg)} resid=${round2(Ares.residual)} centered=${Ares.centered.toFixed(3)} maxOppDiff=${Ares.maxOppDiff.toFixed(3)} dom=${domNorm.toFixed(3)} mtb=${score.mtbPlayed} flip=${flip}`;
+    el("matchBExplain").textContent =
+      `oppAvg=${round2(Bres.oppAvg)} resid=${round2(Bres.residual)} centered=${Bres.centered.toFixed(3)} maxOppDiff=${Bres.maxOppDiff.toFixed(3)} dom=${domNorm.toFixed(3)} mtb=${score.mtbPlayed} flip=${flip}`;
+
+    el("postOut").textContent = isDoubles
+      ? `A1 ${round2(postA[0])}  A2 ${round2(postA[1])}  |  B1 ${round2(postB[0])}  B2 ${round2(postB[1])}`
+      : `A1 ${round2(postA[0])}  |  B1 ${round2(postB[0])}`;
+
+    el("postExplain").textContent = `post = old + β·(matchRatingSide − old), β=${beta.toFixed(2)}`;
+    el("diag").textContent =
+      `gamesA=${score.gamesA} gamesB=${score.gamesB} shareA=${score.shareA.toFixed(3)} (MTB adj ${score.mtbAdjA.toFixed(3)})\n` +
+      `domNorm=${domNorm.toFixed(3)} splitSets=${flip}`;
+
+    status("computed OK", "ok");
+  }
+
+  function resetAll() {
+    el("matchType").value = "doubles";
+    el("beta").value = "0.38";
+    el("mtbTightness").value = "0.6";
+    el("a1").value = ""; el("a2").value = ""; el("b1").value = ""; el("b2").value = "";
+    el("s1a").value = "6"; el("s1b").value = "4"; el("s2a").value = "2"; el("s2b").value = "6";
+    el("mtbWinner").value = "B";
+    el("matchA").textContent = "—";
+    el("matchB").textContent = "—";
+    el("matchAExplain").textContent = "";
+    el("matchBExplain").textContent = "";
+    el("postOut").textContent = "—";
+    el("postExplain").textContent = "";
+    el("diag").textContent = "—";
+    status("ready", "");
+    syncUI();
+  }
+
+  // Bind
+  el("computeBtn").addEventListener("click", () => {
+    try { compute(); } catch (e) { console.error(e); status(e.message || String(e), "err"); }
+  });
+  el("resetBtn").addEventListener("click", () => {
+    try { resetAll(); } catch (e) { console.error(e); status(e.message || String(e), "err"); }
+  });
+  el("matchType").addEventListener("change", syncUI);
+
+  // Initial
+  syncUI();
+  status("ready", "");
+});
+</script>
+</body>
 </html>
