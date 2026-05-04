@@ -597,7 +597,7 @@ footer {
     <p><strong>The formula</strong> (doubles): <code>mr = 0.61×(opp1+opp2−partner) + 0.39×your_rating + 0.74×gd_pct</code><br>
     Singles: <code>mr = 0.61×opp + 0.39×your_rating + 0.13×gd_pct</code><br>
     Dynamic update: <code>ra_new = 0.20×mr + 0.80×ra_prev</code></p>
-    <p>The opponent baseline carries 61% weight, your own current rating 39%. The score margin (games won − games lost) / total games is scaled by 0.74 for doubles and 0.13 for singles. The dynamic rating is a simple EMA with α=0.20. These parameters were optimised to reproduce the 4-decimal internal dynamic ratings shown on tennisrecord player profiles — Ravi's predicted final: 3.7233 vs PDF 3.7230; Pravin's: 3.8732 vs PDF 3.8729.</p>
+    <p>The opponent baseline carries 61% weight, your own current rating 39%. The score margin (games won − games lost) / total games is scaled by 0.74 for doubles and 0.13 for singles. The dynamic rating is a simple EMA with α=0.20.</p>
     <p><strong>Your current rating is required</strong> — the formula uses it as a 39% component. Without it, the calculation falls back to opponent-only baseline (less accurate).</p>
   </div>
 
