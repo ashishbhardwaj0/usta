@@ -1,11 +1,7 @@
-# usta
-
-How to Access : https://ashishbhardwaj0.github.io/usta/
-
 
 # CourtMath — User Guide
 ### An NTRP Dynamic Rating Estimator
-
+How to Access : https://ashishbhardwaj0.github.io/usta/
 ---
 
 ## What Is CourtMath?
