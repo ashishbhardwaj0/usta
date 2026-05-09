@@ -578,55 +578,60 @@ $("tabManual").addEventListener("click", () => {
 });
 
 // ============ TR LOADER ============
+// Calls our Cloudflare Worker which fetches TennisRecord server-side (no CORS issues).
+// Worker URL — update this after deploying tr-proxy-worker.js to Cloudflare Workers.
+const WORKER_URL = "https://tr-proxy.contact-ashishbh.workers.dev";
+
+async function fetchTRData(playerName, year) {
+  const url = `${WORKER_URL}?player=${encodeURIComponent(playerName)}&year=${year}`;
+  const timeoutPromise = new Promise((_, rej) =>
+    setTimeout(() => rej(new Error("Request timed out after 10s")), 10000)
+  );
+  const fetchPromise = fetch(url).then(async r => {
+    const json = await r.json();
+    if (json.error) throw new Error(json.error);
+    return json;
+  });
+  return Promise.race([fetchPromise, timeoutPromise]);
+}
+
 $("trLoadBtn").addEventListener("click", async () => {
   const raw = $("trLink").value.trim();
   if (!raw) { setStatus($("trStatus"), "Paste your TennisRecord URL first.", ""); return; }
 
   const pm = raw.match(/playername=([^&\s]+)/i);
   if (!pm) { setStatus($("trStatus"), "URL must include ?playername= — copy it directly from TennisRecord.", "err"); return; }
-  const pname = pm[1];
+  const playerName = decodeURIComponent(pm[1].replace(/\+/g, " "));
 
   const year = new Date().getFullYear();
-  const trUrl = `https://www.tennisrecord.com/adult/matchhistory.aspx?playername=${pname}&year=${year}`;
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(trUrl)}`;
-
   $("trLoadBtn").disabled = true;
-  setStatus($("trStatus"), "⏳ Fetching match history…", "");
-
-  // Use a plain fetch with a manual timeout via Promise.race — avoids AbortSignal.timeout browser compat issues
-  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Request timed out after 15s")), 15000));
+  setStatus($("trStatus"), "⏳ Loading from TennisRecord…", "");
 
   try {
-    const resp = await Promise.race([fetch(proxy), timeout]);
-    if (!resp.ok) throw new Error(`Server returned HTTP ${resp.status}`);
-    const data = await resp.json();
-    const html = data.contents || "";
-    if (html.length < 300) throw new Error("Page was empty — this player may have no rated matches this year yet.");
+    const data = await fetchTRData(playerName, year);
+    const { currentRating, ratings } = data;
 
-    // Parse current dynamic rating (shown in the page header)
-    const dynMatch = html.match(/Estimated Dynamic Rating[\s\S]{0,200}?(\d\.\d{4})/i);
-    const currentRating = dynMatch ? parseFloat(dynMatch[1]) : null;
-
-    const ratings = parseTR(html);
     if (!ratings.length && !currentRating) {
-      setStatus($("trStatus"), "Page loaded but no rated matches found for " + year + ". Check the URL or switch to Manual entry.", "err");
+      setStatus($("trStatus"), `No rated matches found for ${year}. Switch to Manual entry.`, "err");
       $("trLoadBtn").disabled = false;
       return;
     }
 
-    // Use last 3 match ratings as seed
-    const last3 = ratings.slice(-3);
+    // Last 3 dynamic ratings (Rating column = dynamic rating after that match)
+    const ratedRows = ratings.filter(r => r.ra != null);
+    const last3 = ratedRows.slice(-3);
     state.trRatings = last3.map(r => ({ val: r.ra, date: r.date }));
     if (currentRating) state.currentRating = currentRating;
     save();
 
-    const pDisplay = decodeURIComponent(pname.replace(/\+/g, " "));
-    const ratingNote = currentRating ? ` · current rating ${currentRating}` : "";
-    setStatus($("trStatus"), `✓ ${pDisplay} · ${ratings.length} rated matches in ${year}${ratingNote} · using last 3 as seed:`, "ok");
+    const parts = [];
+    if (currentRating) parts.push(`current ${currentRating.toFixed(4)}`);
+    parts.push(`${ratings.length} rated matches`);
+    setStatus($("trStatus"), `✓ ${playerName} · ${parts.join(" · ")} · last 3 dynamic ratings loaded:`, "ok");
     renderChips($("trChips"), state.trRatings);
     renderDynamic();
   } catch(e) {
-    setStatus($("trStatus"), `Could not load: ${e.message}. Switch to Manual entry tab to enter your ratings directly.`, "err");
+    setStatus($("trStatus"), `Could not load: ${e.message}. Use the Manual tab to enter ratings directly.`, "err");
   }
   $("trLoadBtn").disabled = false;
 });
@@ -661,22 +666,6 @@ $("manualSaveBtn").addEventListener("click", () => {
 function setStatus(el, msg, cls) {
   el.textContent = msg;
   el.className = "tr-status" + (cls ? " " + cls : "");
-}
-
-function parseTR(html) {
-  const rows = [];
-  const trs = html.match(/<tr[\s\S]*?<\/tr>/gi) || [];
-  for (const tr of trs) {
-    const tds = tr.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [];
-    if (tds.length < 10) continue;
-    const strip = s => s.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
-    const dateCell = strip(tds[0]);
-    const raCell   = strip(tds[tds.length - 1]);
-    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateCell)) continue;
-    if (!/^\d\.\d{2}$/.test(raCell)) continue;
-    rows.push({ date: dateCell, ra: parseFloat(raCell) });
-  }
-  return rows;
 }
 
 function renderChips(container, ratings) {
