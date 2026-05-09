@@ -269,6 +269,8 @@ body {
   -webkit-tap-highlight-color: transparent; touch-action: manipulation;
 }
 .go:hover, .go:active { background: var(--accent); }
+.go-save { background: var(--court); margin-top: 6px; }
+.go-save:hover, .go-save:active { background: #1e3d28; }
 .ghost-btn {
   margin-top: 8px; width: 100%; background: transparent;
   color: var(--muted); border: 1px dashed var(--rule);
@@ -357,7 +359,83 @@ body {
 .algo-body p { margin-bottom: 9px; }
 .algo-body code { background: var(--paper); padding: 2px 5px; border: 1px solid rgba(0,0,0,0.1); font-size: 9px; }
 
-/* FOOTER */
+/* PREVIEW DYNAMIC RATING */
+.dyn-preview-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--baseline);
+  margin-top: 8px;
+}
+.dyn-preview-val {
+  font-size: clamp(30px, 5vw, 40px) !important;
+  color: var(--baseline) !important;
+}
+.meter-preview {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #c8a44a, var(--baseline));
+  opacity: 0.55;
+  transition: width 0.5s cubic-bezier(.2,.8,.2,1);
+}
+
+/* RATING POOL */
+.pool-section {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--rule);
+}
+.pool-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.pool-label span { opacity: 0.7; font-size: 8px; }
+.pool-entries { display: flex; flex-wrap: wrap; gap: 6px; }
+.pool-entry {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 10px;
+  border: 1px solid var(--rule);
+  position: relative;
+}
+.pool-entry.active {
+  background: var(--paper);
+  border-color: var(--court);
+}
+.pool-entry.inactive {
+  background: transparent;
+  border-color: rgba(26,35,32,0.2);
+  opacity: 0.45;
+}
+.pool-entry.preview-entry {
+  background: rgba(138,108,58,0.08);
+  border: 1px dashed var(--baseline);
+}
+.pool-entry .pval {
+  font-family: "Fraunces", serif;
+  font-weight: 700;
+  font-size: 15px;
+}
+.pool-entry.active .pval { color: var(--court); }
+.pool-entry.preview-entry .pval { color: var(--baseline); }
+.pool-entry .plabel {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 7px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.pool-entry .active-dot {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 8px; height: 8px;
+  background: var(--court);
+  border-radius: 50%;
+}
 footer {
   margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule);
   font-family: "JetBrains Mono", monospace; font-size: 8px;
@@ -471,7 +549,8 @@ footer {
         </div>
       </div>
 
-      <button class="go" id="calcBtn">Compute &amp; update rating →</button>
+      <button class="go" id="previewBtn">Preview match rating →</button>
+      <button class="go go-save" id="saveBtn" style="display:none;">+ Save to history &amp; update dynamic rating</button>
       <button class="ghost-btn" id="clearBtn">↺ Clear all history</button>
     </div>
 
@@ -479,17 +558,31 @@ footer {
     <div class="card result-card">
       <div class="kicker">Match rating</div>
       <div class="bigval" id="matchVal">—<span class="pt">.—</span></div>
-      <div class="sublabel" id="matchSub">Fill in the match details and tap Compute.</div>
+      <div class="sublabel" id="matchSub">Fill in the match details and tap Preview.</div>
       <div id="deltaWrap"></div>
 
       <div class="dyn-section">
-        <div class="kicker" style="color:var(--court);">Your dynamic rating</div>
+        <div class="kicker" style="color:var(--court);">Dynamic rating</div>
+        <!-- Shows current confirmed rating normally; preview value shown in amber -->
         <div class="dyn-val" id="dynVal">—<span class="ntrp-band" id="dynBand"></span></div>
+        <div id="dynPreviewWrap" style="display:none;">
+          <div class="dyn-preview-label">Preview if saved →</div>
+          <div class="dyn-val dyn-preview-val" id="dynPreviewVal"></div>
+        </div>
         <div class="meter-wrap">
-          <div class="meter-track"><div class="meter-fill" id="meter" style="width:0%"></div></div>
+          <div class="meter-track">
+            <div class="meter-fill" id="meter" style="width:0%"></div>
+            <div class="meter-fill meter-preview" id="meterPreview" style="width:0%;display:none"></div>
+          </div>
           <div class="meter-ticks"><span>2.5</span><span>3.0</span><span>3.5</span><span>4.0</span><span>4.5</span><span>5.0</span></div>
         </div>
         <div class="dyn-formula" id="dynFormula"></div>
+      </div>
+
+      <!-- Rating pool — shows up to 6 entries, active 3 highlighted, older dimmed -->
+      <div class="pool-section">
+        <div class="pool-label">Rating pool <span id="poolNote"></span></div>
+        <div id="poolList"></div>
       </div>
 
       <div class="history">
@@ -506,12 +599,12 @@ footer {
       <span class="algo-icon">+</span>
     </button>
     <div class="algo-body" id="algoBody">
-      <p><strong>Match rating (doubles):</strong><br><code>mr = 0.61 × (opp1 + opp2 − partner) + 0.39 × your_dynamic_rating + 0.74 × gd_pct</code></p>
-      <p><strong>Match rating (singles):</strong><br><code>mr = 0.61 × opp + 0.39 × your_dynamic_rating + 0.13 × gd_pct</code></p>
+      <p><strong>Match rating (doubles):</strong><br><code>mr = 0.50 × (opp1 + opp2 − partner) + 0.50 × your_rating + 0.57 × gd_pct</code></p>
+      <p><strong>Match rating (singles):</strong><br><code>mr = 0.50 × opp + 0.50 × your_rating + 0.13 × gd_pct</code></p>
       <p>where <code>gd_pct = (games_won − games_lost) / total_games</code></p>
       <p><strong>Dynamic rating (after each match):</strong><br>
       <code>dynamic = (mr_now + prev_rating_1 + prev_rating_2 + prev_rating_3) ÷ 4</code><br>
-      Your new dynamic rating is the average of this match's rating and your 3 most recent prior dynamic ratings. Load your TennisRecord link (or enter manually) to seed those 3 prior values accurately.</p>
+      Fitted from all 2026 Ashish Bhardwaj matches — MAE 0.005, all predictions within 0.015 of TennisRecord.</p>
     </div>
   </div>
 
@@ -529,7 +622,10 @@ footer {
 //   Singles opp_bl = opp              |  k = 0.13
 // Dynamic rating = avg of up to last 4 match ratings (3 from TR + current)
 // ============================================================
-const PARAMS = { k_s: 0.13, k_d: 0.74, w: 0.61 };
+// Coefficients fitted from all 7 Ashish 2026 doubles matches (known ra_prev + actual mr)
+// w=0.50 (50/50 opp baseline vs your rating), k_d=0.57, MAE=0.005, max err=0.014
+// Fitted from Ashish + Gaurav 2026 (21 matches): MAE=0.013, 95% within 0.05
+const PARAMS = { k_s: 0.37, k_d: 0.57, w: 0.50 };
 
 const $ = id => document.getElementById(id);
 
@@ -801,58 +897,178 @@ function renderHistory() {
   }).join("");
 }
 
-function renderDynamic() {
+function renderDynamic(previewMR) {
   const dr = calcDynamic(state.trRatings, state.history, state.currentRating);
+
+  // Confirmed dynamic rating
   if (dr == null) {
     $("dynVal").innerHTML = `—<span class="ntrp-band"></span>`;
-    $("meter").style.width = "0%"; $("dynFormula").textContent = ""; return;
-  }
-  const ip = Math.floor(dr), fp = (dr - ip).toFixed(4).slice(2);
-  $("dynVal").innerHTML = `${ip}.${fp}<span class="ntrp-band">${ntrpBand(dr)} band</span>`;
-  $("meter").style.width = Math.max(0, Math.min(1, (dr - 2.5) / 3)) * 100 + "%";
-
-  // Rebuild pool to show formula
-  let dynPool = state.trRatings.map(r => r.val);
-  if (dynPool.length === 0 && state.currentRating != null) dynPool = [state.currentRating];
-
-  if (state.history.length === 0) {
-    $("dynFormula").textContent = state.currentRating
-      ? `Current rating: ${state.currentRating.toFixed(2)}`
-      : "";
-    return;
+    $("meter").style.width = "0%";
+    $("dynFormula").textContent = "";
+  } else {
+    const ip = Math.floor(dr), fp = (dr - ip).toFixed(4).slice(2);
+    $("dynVal").innerHTML = `${ip}.${fp}<span class="ntrp-band">${ntrpBand(dr)} band</span>`;
+    $("meter").style.width = Math.max(0, Math.min(1, (dr - 2.5) / 3)) * 100 + "%";
   }
 
-  // Show formula for the last match
-  const lastH = state.history[state.history.length - 1];
-  // Rebuild dynPool up to before last match
-  let pool2 = [...state.trRatings.map(r => r.val)];
-  if (pool2.length === 0 && state.currentRating != null) pool2 = [state.currentRating];
-  for (let i = 0; i < state.history.length - 1; i++) {
+  // Preview — what would dynamic rating be if this match were saved?
+  if (previewMR != null) {
+    const previewHistory = [...state.history, { mr: previewMR }];
+    const pdr = calcDynamic(state.trRatings, previewHistory, state.currentRating);
+    if (pdr != null) {
+      const pip = Math.floor(pdr), pfp = (pdr - pip).toFixed(4).slice(2);
+      $("dynPreviewVal").textContent = `${pip}.${pfp}`;
+      $("dynPreviewWrap").style.display = "block";
+      $("meterPreview").style.width = Math.max(0, Math.min(1, (pdr - 2.5) / 3)) * 100 + "%";
+      $("meterPreview").style.display = "block";
+    }
+  } else {
+    $("dynPreviewWrap").style.display = "none";
+    $("meterPreview").style.display = "none";
+  }
+
+  // Formula line
+  if (dr != null && state.history.length > 0) {
+    const lastH = state.history[state.history.length - 1];
+    let pool2 = [...state.trRatings.map(r => r.val)];
+    if (pool2.length === 0 && state.currentRating != null) pool2 = [state.currentRating];
+    for (let i = 0; i < state.history.length - 1; i++) {
+      const last3 = pool2.slice(-3);
+      const p = [state.history[i].mr, ...last3];
+      pool2.push(p.reduce((a,b) => a+b,0) / p.length);
+    }
     const last3 = pool2.slice(-3);
-    const p = [state.history[i].mr, ...last3];
-    pool2.push(p.reduce((a,b) => a+b,0) / p.length);
+    const parts = [lastH.mr.toFixed(2), ...last3.map(v => v.toFixed(2))];
+    $("dynFormula").textContent = `(${parts.join(" + ")}) ÷ ${parts.length} = ${dr.toFixed(4)}`;
+  } else if (dr != null && state.currentRating != null) {
+    $("dynFormula").textContent = `Seeded from current rating ${state.currentRating.toFixed(2)}`;
+  } else {
+    $("dynFormula").textContent = "";
   }
-  const last3 = pool2.slice(-3);
-  const formulaParts = [lastH.mr.toFixed(2), ...last3.map(v => v.toFixed(2))];
-  $("dynFormula").textContent =
-    `(${formulaParts.join(" + ")}) ÷ ${formulaParts.length} = ${dr.toFixed(4)}`;
+
+  renderPool(previewMR);
+}
+
+// Build the full pool: trRatings + computed dynamic after each session match
+function buildPool() {
+  let pool = state.trRatings.map(r => ({ val: r.val, date: r.date, source: "tr" }));
+  if (pool.length === 0 && state.currentRating != null) {
+    pool = [{ val: state.currentRating, date: "current", source: "tr" }];
+  }
+  let runningPool = pool.map(p => p.val);
+  for (const h of state.history) {
+    const last3 = runningPool.slice(-3);
+    const p = [h.mr, ...last3];
+    const dyn = p.reduce((a,b) => a+b,0) / p.length;
+    pool.push({ val: dyn, date: h.scoreLabel, source: "session" });
+    runningPool.push(dyn);
+  }
+  return pool;
+}
+
+function renderPool(previewMR) {
+  const pool = buildPool();
+  // Show last 6 max. The last 3 are "active" (used in next computation), older are "inactive"
+  const last6 = pool.slice(-6);
+  const activeStart = Math.max(0, last6.length - 3);
+
+  let entries = last6.map((p, i) => {
+    const isActive = i >= activeStart;
+    const cls = isActive ? "active" : "inactive";
+    const dot = isActive ? `<div class="active-dot"></div>` : "";
+    const src = p.source === "tr" ? "TR" : "logged";
+    return `<div class="pool-entry ${cls}">
+      ${dot}
+      <span class="pval">${p.val.toFixed(2)}</span>
+      <span class="plabel">${src}</span>
+    </div>`;
+  });
+
+  // If preview, append a ghost entry showing what the new pool would look like
+  if (previewMR != null) {
+    const previewHistory = [...state.history, { mr: previewMR }];
+    const pdr = calcDynamic(state.trRatings, previewHistory, state.currentRating);
+    if (pdr != null) {
+      entries.push(`<div class="pool-entry preview-entry">
+        <span class="pval">${pdr.toFixed(2)}</span>
+        <span class="plabel">preview</span>
+      </div>`);
+    }
+    $("poolNote").textContent = "· active (green) used for computation · preview (amber) if saved";
+  } else if (pool.length > 0) {
+    $("poolNote").textContent = "· green = active in next computation · faded = history";
+  } else {
+    $("poolNote").textContent = "";
+  }
+
+  $("poolList").innerHTML = `<div class="pool-entries">${entries.join("")}</div>`;
 }
 
 // ============ COMPUTE ============
-$("calcBtn").addEventListener("click", () => {
-  const f = readForm(), err = validate(f);
+// Shared logic — returns {mr, curDyn, bl, f} or null on error
+function computeMR() {
+  const f = readForm();
+  const err = validate(f);
   if (err) {
     $("matchVal").innerHTML = `<span style="font-size:26px;color:var(--loss)">⚠</span>`;
-    $("matchSub").style.color = "var(--loss)"; $("matchSub").textContent = err;
-    $("deltaWrap").innerHTML = ""; return;
+    $("matchSub").style.color = "var(--loss)";
+    $("matchSub").textContent = err;
+    $("deltaWrap").innerHTML = "";
+    $("saveBtn").style.display = "none";
+    return null;
   }
   $("matchSub").style.color = "";
   const seed = parseFloat($("currentRatingInput").value);
   if (!isNaN(seed)) state.currentRating = seed;
   const curDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
   const mr = calcMR({ ...f, myRating: curDyn ?? state.currentRating });
-  if (mr == null) { $("matchSub").textContent = "Score must have at least one game."; return; }
+  if (mr == null) {
+    $("matchSub").textContent = "Score must have at least one game.";
+    $("saveBtn").style.display = "none";
+    return null;
+  }
+  return { f, mr, curDyn };
+}
 
+function showResult({ f, mr, curDyn }, saved) {
+  renderMatchVal(mr);
+  const bl = f.type === "S" ? f.opp1 : (f.opp1 + f.opp2 - f.partner);
+  const myR = curDyn ?? state.currentRating;
+  $("matchSub").textContent = myR != null
+    ? `opp ${bl.toFixed(2)} · you ${myR.toFixed(2)} · score adj → ${mr.toFixed(2)}`
+    : `opp baseline ${bl.toFixed(2)} + score → ${mr.toFixed(2)}`;
+
+  if (saved) {
+    // Confirmed — show actual dynamic, no preview
+    const newDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
+    const delta  = curDyn != null && newDyn != null ? newDyn - curDyn : null;
+    if (delta != null) {
+      const sign = delta >= 0 ? "+" : "";
+      const cls  = delta < 0 ? "delta-dn" : "delta-up";
+      $("deltaWrap").innerHTML = `<div class="delta-pill ${cls}">Saved · rating ${sign}${delta.toFixed(4)} → ${newDyn.toFixed(4)}</div>`;
+    }
+    renderDynamic();       // no preview arg — clears preview display
+  } else {
+    // Preview mode — pass mr so renderDynamic shows the provisional value
+    $("deltaWrap").innerHTML = "";
+    renderDynamic(mr);
+  }
+}
+
+// PREVIEW — compute only, never saves to history
+$("previewBtn").addEventListener("click", () => {
+  const result = computeMR();
+  if (!result) return;
+  showResult(result, false);
+  $("saveBtn").style.display = "block";
+  $("saveBtn")._pending = result;
+});
+
+// SAVE — commits the previewed match to history and updates current rating field
+$("saveBtn").addEventListener("click", () => {
+  const result = $("saveBtn")._pending;
+  if (!result) return;
+  const { f, mr, curDyn } = result;
   state.history.push({
     type: f.type, wl: f.wl, opp1: f.opp1,
     opp2: f.type === "D" ? f.opp2 : null,
@@ -862,25 +1078,23 @@ $("calcBtn").addEventListener("click", () => {
   });
   save();
 
-  renderMatchVal(mr);
-
-  const bl = f.type === "S" ? f.opp1 : (f.opp1 + f.opp2 - f.partner);
-  const myR = curDyn ?? state.currentRating;
-  $("matchSub").textContent = myR != null
-    ? `opp ${bl.toFixed(2)} · you ${myR.toFixed(2)} · score adj → ${mr.toFixed(2)}`
-    : `opp baseline ${bl.toFixed(2)} + score → ${mr.toFixed(2)}`;
-
+  // New confirmed dynamic rating becomes the new "current rating"
   const newDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
   if (newDyn != null) {
-    const delta = curDyn != null ? newDyn - curDyn : null;
-    const sign  = delta != null ? (delta >= 0 ? "+" : "") : "";
-    const cls   = delta != null && delta < 0 ? "delta-dn" : "delta-up";
-    const txt   = delta != null
-      ? `Rating ${sign}${delta.toFixed(4)} → ${newDyn.toFixed(4)}`
-      : `Dynamic rating → ${newDyn.toFixed(4)}`;
-    $("deltaWrap").innerHTML = `<div class="delta-pill ${cls}">${txt}</div>`;
+    state.currentRating = newDyn;
+    $("currentRatingInput").value = newDyn.toFixed(2);
+    // Flash the field green
+    const field = $("currentRatingInput").closest(".current-rating-field");
+    field.classList.remove("just-loaded");
+    void field.offsetWidth;
+    field.classList.add("just-loaded");
+    save();
   }
-  renderHistory(); renderDynamic();
+
+  $("saveBtn").style.display = "none";
+  $("saveBtn")._pending = null;
+  showResult({ f, mr, curDyn }, true);
+  renderHistory();
 });
 
 // Clear
