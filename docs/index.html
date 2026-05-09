@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -16,12 +17,10 @@
   --accent: #b3492a;
   --accent-soft: #d97757;
   --court: #2f5b3e;
-  --baseline: #8a6c3a;
   --win: #2f5b3e;
   --loss: #b3492a;
   --muted: #5b665e;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -30,516 +29,385 @@ body {
   font-family: "Inter", -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
-  background-image:
-    radial-gradient(circle at 15% 12%, rgba(179,73,42,0.04) 0, transparent 40%),
-    radial-gradient(circle at 85% 88%, rgba(47,91,62,0.05) 0, transparent 45%);
   min-height: 100vh;
 }
+.shell { max-width: 1100px; margin: 0 auto; padding: 20px 14px 60px; }
 
-/* Decorative grain */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  opacity: 0.7;
-  z-index: 1;
-  mix-blend-mode: multiply;
-}
-
-.shell {
-  position: relative;
-  z-index: 2;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 32px 28px 80px;
-}
-
-/* ============ MASTHEAD ============ */
+/* MASTHEAD */
 .masthead {
-  border-top: 6px double var(--rule);
+  border-top: 5px double var(--rule);
   border-bottom: 1px solid var(--rule);
-  padding: 22px 0 14px;
-  margin-bottom: 36px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: end;
-  gap: 24px;
+  padding: 16px 0 12px;
+  margin-bottom: 24px;
+  text-align: center;
 }
-.masthead .left, .masthead .right {
+.eyebrow {
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: 9px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--muted);
+  margin-bottom: 6px;
 }
-.masthead .right { text-align: right; }
 .masthead h1 {
   font-family: "Fraunces", serif;
   font-weight: 800;
-  font-size: clamp(44px, 7vw, 88px);
+  font-size: clamp(38px, 8vw, 76px);
   letter-spacing: -0.04em;
   line-height: 0.92;
-  text-align: center;
   font-variation-settings: "opsz" 144;
 }
-.masthead h1 em {
-  font-style: italic;
-  font-weight: 400;
-  color: var(--accent);
-  font-variation-settings: "opsz" 144;
-}
+.masthead h1 em { font-style: italic; font-weight: 400; color: var(--accent); }
 .subhead {
   font-family: "Fraunces", serif;
   font-style: italic;
-  font-size: 17px;
-  text-align: center;
-  margin-top: 8px;
+  font-size: 14px;
   color: var(--muted);
-  font-weight: 400;
+  margin-top: 7px;
 }
 
-/* ============ LAYOUT ============ */
-.cols {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 36px;
-}
-@media (max-width: 900px) {
+/* LAYOUT */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 700px) {
   .cols { grid-template-columns: 1fr; }
-  .masthead { grid-template-columns: 1fr; }
-  .masthead .left, .masthead .right { text-align: center; }
+  .result-card { position: static !important; }
 }
 
-/* ============ FORM CARD ============ */
-.card {
-  background: var(--paper-deep);
-  border: 1px solid var(--rule);
-  padding: 28px;
-  position: relative;
-}
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1px solid var(--rule);
-  pointer-events: none;
-  opacity: 0.25;
-}
-.card h2 {
-  font-family: "Fraunces", serif;
-  font-weight: 800;
-  font-size: 24px;
-  letter-spacing: -0.02em;
-  margin-bottom: 4px;
-}
-.card .kicker {
+/* CARD */
+.card { background: var(--paper-deep); border: 1px solid var(--rule); padding: 18px; }
+.card h2 { font-family: "Fraunces", serif; font-weight: 800; font-size: 20px; letter-spacing: -0.02em; margin-bottom: 4px; }
+.kicker {
   font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-size: 9px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
-/* mode toggle */
-.toggle {
-  display: flex;
+/* TR LOADER */
+.tr-box {
   background: var(--paper);
-  border: 1px solid var(--rule);
-  margin-bottom: 22px;
+  border: 1px dashed var(--rule);
+  padding: 12px;
+  margin-bottom: 20px;
 }
-.toggle button {
-  flex: 1;
-  border: 0;
-  background: transparent;
+.tr-box-label {
   font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
+  font-size: 9px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  padding: 12px;
-  cursor: pointer;
   color: var(--muted);
-  transition: background 0.15s, color 0.15s;
+  margin-bottom: 6px;
 }
-.toggle button.active {
-  background: var(--rule);
-  color: var(--paper);
-}
-
-/* fields */
-.field-group {
-  display: grid;
-  gap: 14px;
-}
-.field {
-  display: grid;
-  grid-template-columns: 130px 1fr;
-  align-items: center;
-  gap: 14px;
-}
-.field label {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.field input {
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  padding: 10px 12px;
-  font-family: "Fraunces", serif;
-  font-size: 18px;
-  color: var(--ink);
-  width: 100%;
-  transition: border-color 0.15s;
-}
-.field input:focus {
-  outline: 0;
-  border-color: var(--accent);
-}
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-/* W/L toggle */
-.wl {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--rule);
-}
-.wl button {
+.tr-input-row { display: flex; gap: 6px; }
+.tr-input-row input {
   flex: 1;
-  border: 0;
-  background: var(--paper);
-  font-family: "Fraunces", serif;
-  font-size: 22px;
-  font-weight: 800;
-  padding: 8px;
-  cursor: pointer;
-  color: var(--muted);
-}
-.wl button.active.W { background: var(--win); color: var(--paper); }
-.wl button.active.L { background: var(--loss); color: var(--paper); }
-.wl button + button { border-left: 1px solid var(--rule); }
-
-/* score sets */
-.sets {
-  display: grid;
-  gap: 10px;
-}
-.set-row {
-  display: grid;
-  grid-template-columns: 60px 1fr 12px 1fr;
-  align-items: center;
-  gap: 6px;
-}
-.set-row span:first-child {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.set-row .dash {
-  text-align: center;
-  font-family: "Fraunces", serif;
-  font-size: 18px;
-  color: var(--muted);
-}
-.set-row input {
-  text-align: center;
-  font-family: "Fraunces", serif;
-  font-size: 18px;
-}
-
-/* primary button */
-.go {
-  margin-top: 18px;
-  width: 100%;
-  background: var(--ink);
-  color: var(--paper);
-  border: 0;
-  padding: 14px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.15s;
-}
-.go:hover { background: var(--accent); }
-
-/* add match */
-.add-match {
-  margin-top: 12px;
-  width: 100%;
-  background: transparent;
-  color: var(--ink);
-  border: 1px dashed var(--rule);
-  padding: 10px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.add-match:hover { border-style: solid; background: var(--paper); }
-
-/* ============ RESULT PANEL ============ */
-.result-card {
-  position: sticky;
-  top: 24px;
-}
-.bigval {
-  font-family: "Fraunces", serif;
-  font-weight: 800;
-  font-size: clamp(72px, 10vw, 124px);
-  letter-spacing: -0.04em;
-  line-height: 0.95;
-  font-variation-settings: "opsz" 144;
-  margin: 12px 0;
-}
-.bigval .pt {
-  color: var(--accent);
-  font-style: italic;
-  font-weight: 400;
-}
-.matchlabel {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.dynamic-section {
-  margin-top: 24px;
-  padding-top: 22px;
-  border-top: 1px dashed var(--rule);
-}
-.dynamic-val {
-  font-family: "Fraunces", serif;
-  font-weight: 800;
-  font-size: 56px;
-  letter-spacing: -0.03em;
-  margin-top: 6px;
-}
-.dynamic-val .ntrp-band {
-  font-family: "Fraunces", serif;
-  font-size: 14px;
-  font-style: italic;
-  font-weight: 400;
-  color: var(--muted);
-  margin-left: 12px;
-}
-
-/* meter */
-.meter-wrap {
-  margin-top: 20px;
-  position: relative;
-}
-.meter-track {
-  height: 8px;
-  background: var(--paper);
-  border: 1px solid var(--rule);
-  position: relative;
-}
-.meter-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: linear-gradient(90deg, var(--accent-soft), var(--accent));
-  transition: width 0.6s cubic-bezier(.2,.8,.2,1);
-}
-.meter-ticks {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 6px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-}
-
-/* match log */
-.history {
-  margin-top: 28px;
-}
-.history h3 {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.history-list {
-  font-family: "Fraunces", serif;
-  font-size: 14px;
-}
-.history-row {
-  display: grid;
-  grid-template-columns: 30px 1fr auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px dotted var(--rule);
-}
-.history-row .idx {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 10px;
-  color: var(--muted);
-}
-.history-row .opp { line-height: 1.2; }
-.history-row .opp small {
-  display: block;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  margin-top: 2px;
-  font-style: normal;
-}
-.history-row .res {
-  font-weight: 600;
-  font-size: 13px;
-}
-.history-row .mr {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  font-weight: 700;
-  background: var(--paper);
-  padding: 4px 8px;
-  border: 1px solid var(--rule);
-}
-.history-row.W .res { color: var(--win); }
-.history-row.L .res { color: var(--loss); }
-.empty-history {
-  font-family: "Fraunces", serif;
-  font-style: italic;
-  color: var(--muted);
-  text-align: center;
-  padding: 30px 0;
-}
-
-/* algorithm box */
-.algo {
-  margin-top: 36px;
-  padding: 24px;
+  min-width: 0;
   background: var(--paper-deep);
   border: 1px solid var(--rule);
-  font-family: "JetBrains Mono", monospace;
-  font-size: 11px;
-  line-height: 1.7;
+  padding: 9px 10px;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
   color: var(--ink);
 }
-.algo h3 {
-  font-family: "Fraunces", serif;
-  font-size: 18px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  letter-spacing: -0.01em;
-}
-.algo p { margin-bottom: 10px; }
-.algo code {
-  background: var(--paper);
-  padding: 2px 6px;
-  border: 1px solid rgba(0,0,0,0.1);
-}
-.algo .stats {
-  display: flex;
-  gap: 24px;
-  margin-top: 14px;
-  font-family: "Fraunces", serif;
-  font-style: italic;
-}
-.algo .stats span {
-  font-family: "JetBrains Mono", monospace;
-  font-style: normal;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-/* footer */
-footer {
-  margin-top: 60px;
-  padding-top: 20px;
-  border-top: 1px solid var(--rule);
+.tr-input-row input:focus { outline: 0; border-color: var(--accent); }
+.tr-load-btn {
+  background: var(--court);
+  color: #fff;
+  border: 0;
+  padding: 9px 12px;
   font-family: "JetBrains Mono", monospace;
   font-size: 9px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.tr-load-btn:disabled { opacity: 0.45; cursor: default; }
+.tr-status {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
   color: var(--muted);
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  margin-top: 6px;
+  line-height: 1.5;
+  min-height: 14px;
+}
+.tr-status.err { color: var(--loss); font-weight: 600; }
+.tr-status.ok  { color: var(--court); }
+
+/* TR TABS */
+.tr-tabs { display: flex; border-bottom: 1px solid var(--rule); margin: -12px -12px 0; }
+.tr-tab {
+  flex: 1; border: 0; background: transparent; padding: 9px 8px;
+  font-family: "JetBrains Mono", monospace; font-size: 9px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  -webkit-tap-highlight-color: transparent; transition: color 0.12s;
+}
+.tr-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* MANUAL ENTRY */
+.manual-input {
+  width: 100%; background: var(--paper-deep); border: 1px solid var(--rule);
+  padding: 9px 11px; font-family: "Fraunces", serif; font-size: 16px; color: var(--ink);
+  -moz-appearance: textfield; appearance: textfield; margin-top: 4px; display: block;
+}
+.manual-input::-webkit-inner-spin-button,
+.manual-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.manual-input:focus { outline: 0; border-color: var(--accent); }
+.manual-3-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-top: 4px; }
+.manual-3-cell { display: flex; flex-direction: column; }
+.manual-3-label { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.tr-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.tr-chip {
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  padding: 5px 10px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.tr-chip .chip-val { font-family: "Fraunces", serif; font-weight: 700; font-size: 16px; }
+.tr-chip .chip-date { font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--muted); margin-top: 1px; }
+
+/* MODE TOGGLE */
+.toggle { display: flex; background: var(--paper); border: 1px solid var(--rule); margin-bottom: 14px; }
+.toggle button {
+  flex: 1; border: 0; background: transparent;
+  font-family: "JetBrains Mono", monospace; font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 12px; cursor: pointer; color: var(--muted);
+  transition: background 0.12s, color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.toggle button.active { background: var(--rule); color: var(--paper); }
+
+/* FIELDS */
+.field-group { display: grid; gap: 11px; }
+.field { display: grid; grid-template-columns: 100px 1fr; align-items: center; gap: 10px; }
+@media (max-width: 360px) { .field { grid-template-columns: 1fr; gap: 3px; } }
+.field label {
+  font-family: "JetBrains Mono", monospace; font-size: 9px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+}
+.field input[type="number"] {
+  width: 100%; background: var(--paper); border: 1px solid var(--rule);
+  padding: 11px 12px; font-family: "Fraunces", serif; font-size: 17px; color: var(--ink);
+  -moz-appearance: textfield; appearance: textfield;
+}
+.field input::-webkit-inner-spin-button,
+.field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.field input:focus { outline: 0; border-color: var(--accent); }
+
+/* W/L */
+.wl { display: flex; border: 1px solid var(--rule); }
+.wl button {
+  flex: 1; border: 0; background: var(--paper);
+  font-family: "Fraunces", serif; font-size: 19px; font-weight: 800;
+  padding: 11px; cursor: pointer; color: var(--muted);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.wl button.active.W { background: var(--win); color: #fff; }
+.wl button.active.L { background: var(--loss); color: #fff; }
+.wl button + button { border-left: 1px solid var(--rule); }
+
+/* SETS */
+.sets { display: grid; gap: 7px; }
+.set-row { display: grid; grid-template-columns: 48px 1fr 14px 1fr; align-items: center; gap: 4px; }
+.set-row .set-label { font-family: "JetBrains Mono", monospace; font-size: 8px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.set-row .dash { text-align: center; font-family: "Fraunces", serif; font-size: 15px; color: var(--muted); }
+
+/* BUTTONS */
+.go {
+  margin-top: 16px; width: 100%;
+  background: var(--ink); color: #fff; border: 0;
+  padding: 15px; font-family: "JetBrains Mono", monospace;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.go:hover, .go:active { background: var(--accent); }
+.ghost-btn {
+  margin-top: 8px; width: 100%; background: transparent;
+  color: var(--muted); border: 1px dashed var(--rule);
+  padding: 9px; font-family: "JetBrains Mono", monospace;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.ghost-btn:hover { border-style: solid; color: var(--ink); }
+
+/* RESULT */
+.result-card { position: sticky; top: 16px; }
+.bigval {
+  font-family: "Fraunces", serif; font-weight: 800;
+  font-size: clamp(60px, 11vw, 100px);
+  letter-spacing: -0.04em; line-height: 0.94;
+  font-variation-settings: "opsz" 144; margin: 8px 0;
+}
+.bigval .pt { color: var(--accent); font-style: italic; font-weight: 400; }
+.sublabel {
+  font-family: "JetBrains Mono", monospace; font-size: 9px;
+  letter-spacing: 0.13em; color: var(--muted); line-height: 1.6;
 }
 
-/* loading subtle pulse on result */
-.pulse {
-  animation: pulse 0.4s ease;
+/* DELTA PILL */
+.delta-pill {
+  display: inline-block; margin-top: 7px;
+  padding: 4px 10px; font-family: "JetBrains Mono", monospace;
+  font-size: 10px; letter-spacing: 0.1em;
 }
-@keyframes pulse {
-  0% { transform: scale(0.96); opacity: 0.4; }
-  100% { transform: scale(1); opacity: 1; }
+.delta-up { background: rgba(47,91,62,0.1); color: var(--win); border: 1px solid rgba(47,91,62,0.25); }
+.delta-dn { background: rgba(179,73,42,0.08); color: var(--loss); border: 1px solid rgba(179,73,42,0.25); }
+
+/* DYNAMIC SECTION */
+.dyn-section { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--rule); }
+.dyn-val {
+  font-family: "Fraunces", serif; font-weight: 800;
+  font-size: clamp(38px, 7vw, 52px); letter-spacing: -0.03em; margin-top: 4px;
 }
+.ntrp-band { font-family: "Fraunces", serif; font-size: 12px; font-style: italic; font-weight: 400; color: var(--muted); margin-left: 8px; }
+.meter-wrap { margin-top: 14px; }
+.meter-track { height: 6px; background: var(--paper); border: 1px solid var(--rule); position: relative; }
+.meter-fill {
+  position: absolute; inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+  transition: width 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.meter-ticks { display: flex; justify-content: space-between; margin-top: 4px; font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--muted); }
+.dyn-formula { margin-top: 6px; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.08em; color: var(--muted); }
+
+/* HISTORY */
+.history { margin-top: 20px; }
+.history h3 { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.history-row {
+  display: grid; grid-template-columns: 22px 1fr auto auto;
+  align-items: center; gap: 7px;
+  padding: 7px 0; border-bottom: 1px dotted var(--rule);
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.history-row:active { opacity: 0.55; }
+.history-row .idx { font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--muted); }
+.history-row .opp { font-family: "Fraunces", serif; font-size: 13px; line-height: 1.25; }
+.history-row .opp small { display: block; font-family: "JetBrains Mono", monospace; font-size: 8px; color: var(--muted); font-style: normal; }
+.history-row .res { font-family: "Inter", sans-serif; font-weight: 700; font-size: 10px; }
+.history-row.W .res { color: var(--win); }
+.history-row.L .res { color: var(--loss); }
+.history-row .mr { font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 700; background: var(--paper); padding: 3px 6px; border: 1px solid var(--rule); }
+.empty-hist { font-family: "Fraunces", serif; font-style: italic; color: var(--muted); text-align: center; padding: 22px 0; font-size: 13px; }
+
+/* COLLAPSIBLE ALGO */
+.algo-wrap { margin-top: 24px; border: 1px solid var(--rule); }
+.algo-toggle {
+  width: 100%; background: var(--paper-deep); border: 0;
+  padding: 13px 18px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.algo-toggle-title { font-family: "Fraunces", serif; font-weight: 800; font-size: 15px; letter-spacing: -0.01em; }
+.algo-icon { font-family: "JetBrains Mono", monospace; font-size: 20px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; margin-left: 12px; }
+.algo-toggle[aria-expanded="true"] .algo-icon { transform: rotate(45deg); }
+.algo-body {
+  display: none; padding: 16px 18px; border-top: 1px solid var(--rule);
+  background: var(--paper-deep); font-family: "JetBrains Mono", monospace;
+  font-size: 10px; line-height: 1.8; color: var(--ink);
+}
+.algo-body.open { display: block; }
+.algo-body p { margin-bottom: 9px; }
+.algo-body code { background: var(--paper); padding: 2px 5px; border: 1px solid rgba(0,0,0,0.1); font-size: 9px; }
+
+/* FOOTER */
+footer {
+  margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule);
+  font-family: "JetBrains Mono", monospace; font-size: 8px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+}
+
+.pulse { animation: pulse 0.32s ease; }
+@keyframes pulse { 0% { transform: scale(0.96); opacity: 0.4; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
 <body>
 <div class="shell">
 
   <header class="masthead">
-    <div class="left">No. 001 · Vol. I</div>
-    <div>
-      <h1>Court <em>Math</em></h1>
-      <p class="subhead">An estimator of NTRP dynamic ratings, in the manner of tennisrecord.com</p>
-    </div>
-    <div class="right">Spring 2026 · Pleasanton</div>
+    <div class="eyebrow">USTA Adult League · NTRP</div>
+    <h1>Court <em>Math</em></h1>
+    <p class="subhead">Estimate your dynamic rating, in the manner of tennisrecord.com</p>
   </header>
 
   <div class="cols">
 
-    <!-- LEFT: input -->
+    <!-- LEFT: INPUT -->
     <div class="card">
-      <div class="kicker">Section I · Match Entry</div>
-      <h2>Log a match</h2>
 
-      <div class="toggle" id="modeToggle" style="margin-top: 18px;">
+      <!-- Step 1: TR Link or manual entry -->
+      <div class="kicker">Step 1 · Seed your rating history</div>
+      <div class="tr-box">
+        <div class="tr-tabs">
+          <button class="tr-tab active" id="tabAuto">Auto — paste TR link</button>
+          <button class="tr-tab" id="tabManual">Manual — enter ratings</button>
+        </div>
+
+        <!-- AUTO PANEL -->
+        <div id="panelAuto">
+          <div class="tr-box-label" style="margin-top:10px;">Paste your TennisRecord match history link</div>
+          <div class="tr-input-row">
+            <input type="url" id="trLink" placeholder="https://www.tennisrecord.com/adult/matchhistory.aspx?playername=…" autocomplete="off" />
+            <button class="tr-load-btn" id="trLoadBtn">Load →</button>
+          </div>
+          <div class="tr-status" id="trStatus">Loads your current rating + last 3 match ratings automatically.</div>
+          <div class="tr-chips" id="trChips"></div>
+        </div>
+
+        <!-- MANUAL PANEL -->
+        <div id="panelManual" style="display:none;">
+          <div class="tr-box-label" style="margin-top:10px;">Your current dynamic rating (from tennisrecord.com)</div>
+          <input type="number" id="manualCurrent" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.85" inputmode="decimal" class="manual-input" />
+          <div class="tr-box-label" style="margin-top:10px;">Last 3 match ratings (most recent first)</div>
+          <div class="manual-3-row">
+            <div class="manual-3-cell">
+              <div class="manual-3-label">Match 1</div>
+              <input type="number" id="m1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.90" inputmode="decimal" class="manual-input" />
+            </div>
+            <div class="manual-3-cell">
+              <div class="manual-3-label">Match 2</div>
+              <input type="number" id="m2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.82" inputmode="decimal" class="manual-input" />
+            </div>
+            <div class="manual-3-cell">
+              <div class="manual-3-label">Match 3</div>
+              <input type="number" id="m3" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.88" inputmode="decimal" class="manual-input" />
+            </div>
+          </div>
+          <button class="tr-load-btn" id="manualSaveBtn" style="margin-top:10px;width:100%;">Use these ratings →</button>
+          <div class="tr-status" id="manualStatus"></div>
+          <div class="tr-chips" id="manualChips"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Match entry -->
+      <div class="kicker">Step 2 · Log a match</div>
+
+      <div class="toggle" id="modeToggle">
         <button class="active" data-mode="D">Doubles</button>
         <button data-mode="S">Singles</button>
       </div>
 
-      <div class="field-group" id="fields">
-        <div class="field">
-          <label>Your NTRP level</label>
-          <input type="number" id="ntrp" step="0.5" min="2.5" max="5.5" value="4.0" />
-        </div>
-
-        <div class="field">
-          <label>Your dyn. rating</label>
-          <input type="number" id="myRating" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.85 (optional seed)" />
-        </div>
-
+      <div class="field-group">
         <div class="field" id="partnerField">
-          <label>Partner rating</label>
-          <input type="number" id="partner" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.85" />
+          <label>Partner</label>
+          <input type="number" id="partner" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.85" inputmode="decimal" />
         </div>
-
         <div class="field">
           <label>Opponent 1</label>
-          <input type="number" id="opp1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.90" />
+          <input type="number" id="opp1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.90" inputmode="decimal" />
         </div>
-
         <div class="field" id="opp2Field">
           <label>Opponent 2</label>
-          <input type="number" id="opp2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.75" />
+          <input type="number" id="opp2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.75" inputmode="decimal" />
         </div>
-
         <div class="field">
           <label>Result</label>
           <div class="wl" id="wlToggle">
@@ -547,361 +415,450 @@ footer {
             <button class="L" data-wl="L">Lost</button>
           </div>
         </div>
-
-        <div class="field" style="align-items: start; padding-top: 8px;">
+        <div class="field" style="align-items:start;padding-top:5px;">
           <label>Score</label>
           <div class="sets">
-            <div class="set-row"><span>Set 1</span><input type="number" id="s1a" min="0" max="7" placeholder="6"><span class="dash">–</span><input type="number" id="s1b" min="0" max="7" placeholder="3"></div>
-            <div class="set-row"><span>Set 2</span><input type="number" id="s2a" min="0" max="7" placeholder="6"><span class="dash">–</span><input type="number" id="s2b" min="0" max="7" placeholder="4"></div>
-            <div class="set-row"><span>Set 3 / TB</span><input type="number" id="s3a" min="0" max="10" placeholder="–"><span class="dash">–</span><input type="number" id="s3b" min="0" max="10" placeholder="–"></div>
+            <div class="set-row"><span class="set-label">Set 1</span><input type="number" id="s1a" min="0" max="7" placeholder="6" inputmode="numeric"><span class="dash">–</span><input type="number" id="s1b" min="0" max="7" placeholder="3" inputmode="numeric"></div>
+            <div class="set-row"><span class="set-label">Set 2</span><input type="number" id="s2a" min="0" max="7" placeholder="6" inputmode="numeric"><span class="dash">–</span><input type="number" id="s2b" min="0" max="7" placeholder="4" inputmode="numeric"></div>
+            <div class="set-row"><span class="set-label">Set 3/TB</span><input type="number" id="s3a" min="0" max="10" placeholder="–" inputmode="numeric"><span class="dash">–</span><input type="number" id="s3b" min="0" max="10" placeholder="–" inputmode="numeric"></div>
           </div>
         </div>
       </div>
 
       <button class="go" id="calcBtn">Compute &amp; update rating →</button>
-      <button class="add-match" id="clearBtn" style="margin-top:8px;">↺ Clear match history</button>
+      <button class="ghost-btn" id="clearBtn">↺ Clear all history</button>
     </div>
 
-    <!-- RIGHT: result -->
+    <!-- RIGHT: RESULTS -->
     <div class="card result-card">
-      <div class="kicker">Section II · Result</div>
-      <h2>Match rating</h2>
+      <div class="kicker">Match rating</div>
       <div class="bigval" id="matchVal">—<span class="pt">.—</span></div>
-      <div class="matchlabel" id="matchSub">Fill in ratings + score above, then click Compute.</div>
-      <div class="matchlabel" id="matchDelta" style="margin-top: 6px; color: var(--accent);"></div>
+      <div class="sublabel" id="matchSub">Fill in the match details and tap Compute.</div>
+      <div id="deltaWrap"></div>
 
-      <div class="dynamic-section">
-        <div class="kicker" style="color: var(--court);">Section III · Dynamic Rating</div>
-        <div id="dynArrow" style="display:none; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.15em; color:var(--muted); margin-bottom:4px;">UPDATED AFTER LAST MATCH</div>
-        <div class="dynamic-val" id="dynVal">—<span class="ntrp-band" id="dynBand"></span></div>
+      <div class="dyn-section">
+        <div class="kicker" style="color:var(--court);">Your dynamic rating</div>
+        <div class="dyn-val" id="dynVal">—<span class="ntrp-band" id="dynBand"></span></div>
         <div class="meter-wrap">
-          <div class="meter-track"><div class="meter-fill" id="meter" style="width: 0%"></div></div>
-          <div class="meter-ticks">
-            <span>2.5</span><span>3.0</span><span>3.5</span><span>4.0</span><span>4.5</span><span>5.0</span>
-          </div>
+          <div class="meter-track"><div class="meter-fill" id="meter" style="width:0%"></div></div>
+          <div class="meter-ticks"><span>2.5</span><span>3.0</span><span>3.5</span><span>4.0</span><span>4.5</span><span>5.0</span></div>
         </div>
+        <div class="dyn-formula" id="dynFormula"></div>
       </div>
 
       <div class="history">
-        <h3>Match log · <span style="font-weight:400;opacity:0.6">double-click a row to remove</span></h3>
-        <div class="history-list" id="histList">
-          <div class="empty-history">No matches logged. Add a few to see your dynamic rating.</div>
-        </div>
+        <h3>Match log &nbsp;·&nbsp; <span style="font-weight:400;opacity:0.65">tap to remove</span></h3>
+        <div id="histList"><div class="empty-hist">No matches yet. Load your TR link or log a match.</div></div>
       </div>
     </div>
   </div>
 
-  <!-- algorithm explanation -->
-  <div class="algo">
-    <h3>How it works — v3, calibrated to 4-decimal internal rating accuracy</h3>
-    <p><strong>The formula</strong> (doubles): <code>mr = 0.61×(opp1+opp2−partner) + 0.39×your_rating + 0.74×gd_pct</code><br>
-    Singles: <code>mr = 0.61×opp + 0.39×your_rating + 0.13×gd_pct</code><br>
-    Dynamic update: <code>ra_new = 0.20×mr + 0.80×ra_prev</code></p>
-    <p>The opponent baseline carries 61% weight, your own current rating 39%. The score margin (games won − games lost) / total games is scaled by 0.74 for doubles and 0.13 for singles. The dynamic rating is a simple EMA with α=0.20.</p>
-    <p><strong>Your current rating is required</strong> — the formula uses it as a 39% component. Without it, the calculation falls back to opponent-only baseline (less accurate).</p>
+  <!-- COLLAPSIBLE ALGO -->
+  <div class="algo-wrap">
+    <button class="algo-toggle" id="algoToggle" aria-expanded="false">
+      <span class="algo-toggle-title">How the calculation works</span>
+      <span class="algo-icon">+</span>
+    </button>
+    <div class="algo-body" id="algoBody">
+      <p><strong>Match rating (doubles):</strong><br><code>mr = 0.61 × (opp1 + opp2 − partner) + 0.39 × your_dynamic_rating + 0.74 × gd_pct</code></p>
+      <p><strong>Match rating (singles):</strong><br><code>mr = 0.61 × opp + 0.39 × your_dynamic_rating + 0.13 × gd_pct</code></p>
+      <p>where <code>gd_pct = (games_won − games_lost) / total_games</code></p>
+      <p><strong>Dynamic rating (after each match):</strong><br>
+      <code>dynamic = (mr_now + prev_rating_1 + prev_rating_2 + prev_rating_3) ÷ 4</code><br>
+      Your new dynamic rating is the average of this match's rating and your 3 most recent prior dynamic ratings. Load your TennisRecord link (or enter manually) to seed those 3 prior values accurately.</p>
+    </div>
   </div>
 
   <footer>
-    <div>Built for Ashish · validate against your tennisrecord page</div>
-    <div>Not affiliated with USTA or tennisrecord.com</div>
+    <span>Not affiliated with USTA or TennisRecord.com</span>
+    <span>Ratings are estimates only</span>
   </footer>
 </div>
 
 <script>
-// ============ MODEL ============
-// Fitted from 117 scraped matches (see /home/claude/tennis/fit.py)
-// Fitted from 87 ground-truth transitions across 8 players (Brian, Gaurav, Navneet,
 // ============================================================
-// FINAL REVERSE-ENGINEERED ALGORITHM v3
-// Optimized to reproduce both per-match ra AND final internal
-// dynamic rating (4dp) for Ravi (3.7230→pred 3.7233) and
-// Pravin (3.8729→pred 3.8732). Error ±0.0003.
-//
-// Match rating formula:
-//   Doubles: mr = 0.61*(opp1+opp2−partner) + 0.39*ra_prev + 0.74*gd_pct
-//   Singles: mr = 0.61*opp + 0.39*ra_prev + 0.13*gd_pct
-//   (Singles k remains 0.13 — small sample but consistent)
-//
-// Dynamic update:
-//   ra_new = 0.20 * mr + 0.80 * ra_prev
-//
-// Accuracy on 43 sequential chains:
-//   Match rating MAE: ~0.02 NTRP points
-//   Dynamic rating final error: <0.001 for players with complete chains
+// ALGORITHM
+// Match rating: mr = 0.61×opp_bl + 0.39×your_rating + k×gd_pct
+//   Doubles opp_bl = opp1 + opp2 - partner  |  k = 0.74
+//   Singles opp_bl = opp              |  k = 0.13
+// Dynamic rating = avg of up to last 4 match ratings (3 from TR + current)
 // ============================================================
-const PARAMS = {
-  k_singles: 0.13,
-  k_doubles: 0.74,
-  w_opp:     0.61,   // weight on opponent baseline (vs 0.39 on player's own rating)
-  alpha:     0.20,
-};
+const PARAMS = { k_s: 0.13, k_d: 0.74, w: 0.61 };
+
+const $ = id => document.getElementById(id);
 
 function ntrpBand(r) {
-  if (r <= 2.5) return "2.5 band";
-  if (r <= 3.0) return "3.0 band";
-  if (r <= 3.5) return "3.5 band";
-  if (r <= 4.0) return "4.0 band";
-  if (r <= 4.5) return "4.5 band";
-  if (r <= 5.0) return "5.0 band";
-  return "5.5 band";
+  if (r <= 2.5) return "2.5"; if (r <= 3.0) return "3.0"; if (r <= 3.5) return "3.5";
+  if (r <= 4.0) return "4.0"; if (r <= 4.5) return "4.5"; if (r <= 5.0) return "5.0";
+  return "5.5";
 }
 
-// Compute games from sets, returning (gw, gl) from PLAYER perspective
-function gamesFromSets(sets, wl) {
+function gd(sets, wl) {
   let gw = 0, gl = 0;
-  for (let i = 0; i < sets.length; i++) {
-    let [a, b] = sets[i];
-    if (a == null || b == null) continue;
-    gw += a;
-    gl += b;
-  }
-  if (wl === "L") {
-    [gw, gl] = [gl, gw];
-  }
-  return [gw, gl];
+  for (const [a, b] of sets) { if (a != null && b != null) { gw += a; gl += b; } }
+  if (wl === "L") [gw, gl] = [gl, gw];
+  const tot = gw + gl;
+  return tot === 0 ? null : (gw - gl) / tot;
 }
 
-// Compute match rating — requires player's current dynamic rating (myRating)
-function matchRating({ type, opp1, opp2, partner, sets, wl, myRating }) {
-  // Opponent baseline
-  const oppBaseline = type === "S" ? opp1 : (opp1 + opp2 - partner);
-  // Score margin
-  const [gw, gl] = gamesFromSets(sets, wl);
-  const total = gw + gl;
-  if (total === 0) return null;
-  const gd = (gw - gl) / total;
-  const k = type === "S" ? PARAMS.k_singles : PARAMS.k_doubles;
-  const scoreAdj = k * gd;
-  // If we have player's current rating, use the blended formula
-  if (myRating != null && !isNaN(myRating)) {
-    return PARAMS.w_opp * oppBaseline + (1 - PARAMS.w_opp) * myRating + scoreAdj;
-  }
-  // Fallback (no rating known): pure opponent baseline
-  return oppBaseline + scoreAdj;
+function calcMR({ type, opp1, opp2, partner, sets, wl, myRating }) {
+  const bl = type === "S" ? opp1 : (opp1 + opp2 - partner);
+  const gdv = gd(sets, wl);
+  if (gdv === null) return null;
+  const k = type === "S" ? PARAMS.k_s : PARAMS.k_d;
+  if (myRating != null && !isNaN(myRating)) return PARAMS.w * bl + (1 - PARAMS.w) * myRating + k * gdv;
+  return bl + k * gdv;
 }
 
-// Dynamic rating: ra_new = 0.20*mr + 0.80*ra_prev
-// Seed rating acts as ra_prev for the first match.
-function dynamicRating(history, seed) {
-  if (history.length === 0) return seed != null ? seed : null;
-  let ra = seed != null ? seed : history[0].matchRating;
-  for (let i = seed != null ? 0 : 1; i < history.length; i++) {
-    ra = PARAMS.alpha * history[i].matchRating + (1 - PARAMS.alpha) * ra;
+// Dynamic rating = (mr_now + last_3_dynamic_ratings) / 4
+// state.trRatings holds up to 3 prior dynamic ratings (from TR page or manual entry)
+// These are the "Rating" column values — the player's dynamic rating AFTER each match
+// state.history holds matches logged this session, each with .mr (match rating)
+//
+// For each session match in order, we compute:
+//   new_dynamic = (mr_now + prev_dyn_1 + prev_dyn_2 + prev_dyn_3) / 4
+// where prev_dyn values are the 3 most recent dynamic ratings before this match.
+// The pool starts as state.trRatings, and each computed dynamic rating gets appended.
+
+function calcDynamic(trRatings, history, currentRating) {
+  // Build the rolling pool of dynamic ratings.
+  // Seeds: trRatings are prior dynamic ratings (most authoritative).
+  // If we have currentRating but no trRatings, use it as the single seed.
+  let dynPool = trRatings.map(r => r.val); // up to 3 prior dynamic ratings
+
+  if (dynPool.length === 0 && currentRating != null && !isNaN(currentRating)) {
+    dynPool = [currentRating];
   }
-  return ra;
+
+  if (history.length === 0) {
+    // No session matches yet — just return current state
+    if (dynPool.length === 0) return null;
+    return dynPool[dynPool.length - 1]; // most recent known dynamic rating
+  }
+
+  // Walk through session matches, computing new dynamic rating after each
+  let lastDyn = null;
+  for (const h of history) {
+    // Take last 3 dynamic ratings from pool
+    const last3 = dynPool.slice(-3);
+    // Average: (mr_now + last 3 dynamic ratings) / (1 + last3.length)
+    const pool = [h.mr, ...last3];
+    lastDyn = pool.reduce((a, b) => a + b, 0) / pool.length;
+    dynPool.push(lastDyn);
+  }
+
+  return lastDyn;
 }
 
 // ============ STATE ============
 const state = {
-  mode: "D",
-  wl: "W",
-  history: JSON.parse(localStorage.getItem("courtmath:history") || "[]"),
+  mode: "D", wl: "W",
+  trRatings:     JSON.parse(localStorage.getItem("cm:tr")   || "[]"),
+  history:       JSON.parse(localStorage.getItem("cm:hist") || "[]"),
+  currentRating: parseFloat(localStorage.getItem("cm:cur"))  || null,
+};
+const save = () => {
+  localStorage.setItem("cm:tr",   JSON.stringify(state.trRatings));
+  localStorage.setItem("cm:hist", JSON.stringify(state.history));
+  if (state.currentRating != null) localStorage.setItem("cm:cur", state.currentRating);
 };
 
-function persist() {
-  localStorage.setItem("courtmath:history", JSON.stringify(state.history));
+// ============ TR TABS ============
+$("tabAuto").addEventListener("click", () => {
+  $("tabAuto").classList.add("active");
+  $("tabManual").classList.remove("active");
+  $("panelAuto").style.display = "";
+  $("panelManual").style.display = "none";
+});
+$("tabManual").addEventListener("click", () => {
+  $("tabManual").classList.add("active");
+  $("tabAuto").classList.remove("active");
+  $("panelManual").style.display = "";
+  $("panelAuto").style.display = "none";
+});
+
+// ============ TR LOADER ============
+$("trLoadBtn").addEventListener("click", async () => {
+  const raw = $("trLink").value.trim();
+  if (!raw) { setStatus($("trStatus"), "Paste your TennisRecord URL first.", ""); return; }
+
+  const pm = raw.match(/playername=([^&\s]+)/i);
+  if (!pm) { setStatus($("trStatus"), "URL must include ?playername= — copy it directly from TennisRecord.", "err"); return; }
+  const pname = pm[1];
+
+  const year = new Date().getFullYear();
+  const trUrl = `https://www.tennisrecord.com/adult/matchhistory.aspx?playername=${pname}&year=${year}`;
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(trUrl)}`;
+
+  $("trLoadBtn").disabled = true;
+  setStatus($("trStatus"), "⏳ Fetching match history…", "");
+
+  // Use a plain fetch with a manual timeout via Promise.race — avoids AbortSignal.timeout browser compat issues
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Request timed out after 15s")), 15000));
+
+  try {
+    const resp = await Promise.race([fetch(proxy), timeout]);
+    if (!resp.ok) throw new Error(`Server returned HTTP ${resp.status}`);
+    const data = await resp.json();
+    const html = data.contents || "";
+    if (html.length < 300) throw new Error("Page was empty — this player may have no rated matches this year yet.");
+
+    // Parse current dynamic rating (shown in the page header)
+    const dynMatch = html.match(/Estimated Dynamic Rating[\s\S]{0,200}?(\d\.\d{4})/i);
+    const currentRating = dynMatch ? parseFloat(dynMatch[1]) : null;
+
+    const ratings = parseTR(html);
+    if (!ratings.length && !currentRating) {
+      setStatus($("trStatus"), "Page loaded but no rated matches found for " + year + ". Check the URL or switch to Manual entry.", "err");
+      $("trLoadBtn").disabled = false;
+      return;
+    }
+
+    // Use last 3 match ratings as seed
+    const last3 = ratings.slice(-3);
+    state.trRatings = last3.map(r => ({ val: r.ra, date: r.date }));
+    if (currentRating) state.currentRating = currentRating;
+    save();
+
+    const pDisplay = decodeURIComponent(pname.replace(/\+/g, " "));
+    const ratingNote = currentRating ? ` · current rating ${currentRating}` : "";
+    setStatus($("trStatus"), `✓ ${pDisplay} · ${ratings.length} rated matches in ${year}${ratingNote} · using last 3 as seed:`, "ok");
+    renderChips($("trChips"), state.trRatings);
+    renderDynamic();
+  } catch(e) {
+    setStatus($("trStatus"), `Could not load: ${e.message}. Switch to Manual entry tab to enter your ratings directly.`, "err");
+  }
+  $("trLoadBtn").disabled = false;
+});
+
+// ============ MANUAL SAVE ============
+$("manualSaveBtn").addEventListener("click", () => {
+  const cur  = parseFloat($("manualCurrent").value);
+  const r1   = parseFloat($("m1").value);
+  const r2   = parseFloat($("m2").value);
+  const r3   = parseFloat($("m3").value);
+
+  if (isNaN(cur) && isNaN(r1)) {
+    setStatus($("manualStatus"), "Enter at least your current rating or one match rating.", "err");
+    return;
+  }
+
+  const today = new Date().toLocaleDateString("en-US", { month:"2-digit", day:"2-digit", year:"numeric" });
+  const entries = [];
+  if (!isNaN(r3)) entries.push({ val: r3, date: "Match −3" });
+  if (!isNaN(r2)) entries.push({ val: r2, date: "Match −2" });
+  if (!isNaN(r1)) entries.push({ val: r1, date: "Match −1" });
+
+  state.trRatings = entries;
+  if (!isNaN(cur)) state.currentRating = cur;
+  save();
+
+  setStatus($("manualStatus"), `✓ Saved ${entries.length} prior rating${entries.length !== 1 ? "s" : ""}${!isNaN(cur) ? " + current rating " + cur.toFixed(2) : ""}.`, "ok");
+  renderChips($("manualChips"), state.trRatings);
+  renderDynamic();
+});
+
+function setStatus(el, msg, cls) {
+  el.textContent = msg;
+  el.className = "tr-status" + (cls ? " " + cls : "");
 }
 
-// ============ DOM ============
-const $ = (id) => document.getElementById(id);
+function parseTR(html) {
+  const rows = [];
+  const trs = html.match(/<tr[\s\S]*?<\/tr>/gi) || [];
+  for (const tr of trs) {
+    const tds = tr.match(/<td[^>]*>([\s\S]*?)<\/td>/gi) || [];
+    if (tds.length < 10) continue;
+    const strip = s => s.replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
+    const dateCell = strip(tds[0]);
+    const raCell   = strip(tds[tds.length - 1]);
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateCell)) continue;
+    if (!/^\d\.\d{2}$/.test(raCell)) continue;
+    rows.push({ date: dateCell, ra: parseFloat(raCell) });
+  }
+  return rows;
+}
 
-// mode toggle
-document.getElementById("modeToggle").addEventListener("click", e => {
-  if (e.target.tagName !== "BUTTON") return;
+function renderChips(container, ratings) {
+  container.innerHTML = ratings.map(r =>
+    `<div class="tr-chip"><span class="chip-val">${r.val.toFixed(2)}</span><span class="chip-date">${r.date}</span></div>`
+  ).join("");
+}
+
+// ============ TOGGLES ============
+$("modeToggle").addEventListener("click", e => {
+  const btn = e.target.closest("button"); if (!btn) return;
   document.querySelectorAll("#modeToggle button").forEach(b => b.classList.remove("active"));
-  e.target.classList.add("active");
-  state.mode = e.target.dataset.mode;
-  // hide partner / opp2 for singles
-  const isSingles = state.mode === "S";
-  $("partnerField").style.display = isSingles ? "none" : "";
-  $("opp2Field").style.display = isSingles ? "none" : "";
+  btn.classList.add("active"); state.mode = btn.dataset.mode;
+  const s = state.mode === "S";
+  $("partnerField").style.display = s ? "none" : "";
+  $("opp2Field").style.display    = s ? "none" : "";
 });
 
-document.getElementById("wlToggle").addEventListener("click", e => {
-  if (e.target.tagName !== "BUTTON") return;
+$("wlToggle").addEventListener("click", e => {
+  const btn = e.target.closest("button"); if (!btn) return;
   document.querySelectorAll("#wlToggle button").forEach(b => b.classList.remove("active"));
-  e.target.classList.add("active");
-  state.wl = e.target.dataset.wl;
+  btn.classList.add("active"); state.wl = btn.dataset.wl;
 });
 
+$("algoToggle").addEventListener("click", () => {
+  const open = $("algoToggle").getAttribute("aria-expanded") === "true";
+  $("algoToggle").setAttribute("aria-expanded", String(!open));
+  $("algoBody").classList.toggle("open", !open);
+});
+
+// ============ FORM HELPERS ============
 function readForm() {
-  // Helper: parse a score cell. Empty string -> null. "0" -> 0. Anything else -> int or null.
-  const ps = (v) => {
-    if (v === "" || v == null) return null;
-    const n = parseInt(v, 10);
-    return Number.isFinite(n) ? n : null;
-  };
+  const ps = v => { if (v === "" || v == null) return null; const n = parseInt(v, 10); return isFinite(n) ? n : null; };
   const sets = [
     [ps($("s1a").value), ps($("s1b").value)],
     [ps($("s2a").value), ps($("s2b").value)],
     [ps($("s3a").value), ps($("s3b").value)],
-  ].filter(s => s[0] !== null || s[1] !== null);
-  return {
-    type: state.mode,
-    wl: state.wl,
-    opp1: parseFloat($("opp1").value),
-    opp2: parseFloat($("opp2").value),
-    partner: parseFloat($("partner").value),
-    sets,
-  };
+  ].filter(([a, b]) => a !== null || b !== null);
+  return { type: state.mode, wl: state.wl,
+    opp1: parseFloat($("opp1").value), opp2: parseFloat($("opp2").value),
+    partner: parseFloat($("partner").value), sets };
 }
 
-function validate(form) {
-  if (isNaN(form.opp1)) return "Enter opponent 1's rating.";
-  if (form.type === "D" && isNaN(form.opp2)) return "Enter opponent 2's rating.";
-  if (form.type === "D" && isNaN(form.partner)) return "Enter your partner's rating.";
-  if (form.sets.length === 0) return "Enter at least one set's score.";
-  for (const [a, b] of form.sets) {
-    if (a == null || b == null) return "Each entered set needs both scores.";
-  }
+function validate(f) {
+  if (isNaN(f.opp1)) return "Enter Opponent 1 rating.";
+  if (f.type === "D" && isNaN(f.opp2)) return "Enter Opponent 2 rating.";
+  if (f.type === "D" && isNaN(f.partner)) return "Enter Partner rating.";
+  if (!f.sets.length) return "Enter at least Set 1 score.";
+  for (const [a, b] of f.sets) if (a == null || b == null) return "Both scores needed per set.";
   return null;
 }
 
-function renderMatchRating(r) {
-  const intPart = Math.floor(r);
-  const fracPart = (r - intPart).toFixed(2).slice(2);
-  $("matchVal").innerHTML = `${intPart}<span class="pt">.${fracPart}</span>`;
-  $("matchVal").classList.remove("pulse");
-  void $("matchVal").offsetWidth;
-  $("matchVal").classList.add("pulse");
+// ============ RENDER ============
+function renderMatchVal(r) {
+  const ip = Math.floor(r), fp = (r - ip).toFixed(2).slice(2);
+  $("matchVal").innerHTML = `${ip}<span class="pt">.${fp}</span>`;
+  $("matchVal").classList.remove("pulse"); void $("matchVal").offsetWidth; $("matchVal").classList.add("pulse");
 }
 
 function renderHistory() {
-  const list = $("histList");
-  if (state.history.length === 0) {
-    list.innerHTML = `<div class="empty-history">No matches logged. Add a few to see your dynamic rating.</div>`;
-    return;
+  const el = $("histList");
+  if (!state.history.length) {
+    el.innerHTML = `<div class="empty-hist">No matches yet. Load your TR link or log a match.</div>`; return;
   }
-  list.innerHTML = state.history.slice().reverse().map((h, i) => {
-    const idx = state.history.length - i;
-    const opps = h.type === "S"
-      ? `vs ${h.opp1.toFixed(2)}`
-      : `vs ${h.opp1.toFixed(2)} / ${h.opp2.toFixed(2)}`;
-    const partnerLine = h.type === "D" ? `partner ${h.partner.toFixed(2)} · ` : "";
-    return `<div class="history-row ${h.wl}">
-      <div class="idx">${String(idx).padStart(2,'0')}</div>
-      <div class="opp">${opps}<small>${partnerLine}${h.scoreLabel}</small></div>
+  el.innerHTML = [...state.history].reverse().map((h, ri) => {
+    const idx = state.history.length - ri - 1;
+    const opps = h.type === "S" ? `vs ${h.opp1.toFixed(2)}` : `vs ${h.opp1.toFixed(2)} / ${h.opp2.toFixed(2)}`;
+    const sub  = h.type === "D" ? `partner ${h.partner.toFixed(2)} · ${h.scoreLabel}` : h.scoreLabel;
+    return `<div class="history-row ${h.wl}" data-idx="${idx}">
+      <div class="idx">${String(state.history.length - ri).padStart(2,"0")}</div>
+      <div class="opp">${opps}<small>${sub}</small></div>
       <div class="res">${h.wl}</div>
-      <div class="mr">${h.matchRating.toFixed(2)}</div>
+      <div class="mr">${h.mr.toFixed(2)}</div>
     </div>`;
   }).join("");
 }
 
 function renderDynamic() {
-  const seed = parseFloat($("myRating").value);
-  const dr = dynamicRating(state.history, isNaN(seed) ? null : seed);
+  const dr = calcDynamic(state.trRatings, state.history, state.currentRating);
   if (dr == null) {
     $("dynVal").innerHTML = `—<span class="ntrp-band"></span>`;
-    $("meter").style.width = "0%";
+    $("meter").style.width = "0%"; $("dynFormula").textContent = ""; return;
+  }
+  const ip = Math.floor(dr), fp = (dr - ip).toFixed(4).slice(2);
+  $("dynVal").innerHTML = `${ip}.${fp}<span class="ntrp-band">${ntrpBand(dr)} band</span>`;
+  $("meter").style.width = Math.max(0, Math.min(1, (dr - 2.5) / 3)) * 100 + "%";
+
+  // Rebuild pool to show formula
+  let dynPool = state.trRatings.map(r => r.val);
+  if (dynPool.length === 0 && state.currentRating != null) dynPool = [state.currentRating];
+
+  if (state.history.length === 0) {
+    $("dynFormula").textContent = state.currentRating
+      ? `Current rating: ${state.currentRating.toFixed(2)}`
+      : "";
     return;
   }
-  const intPart = Math.floor(dr);
-  const fracPart = (dr - intPart).toFixed(4).slice(2);
-  $("dynVal").innerHTML = `${intPart}.${fracPart}<span class="ntrp-band">${ntrpBand(dr)}</span>`;
-  // meter: 2.5 → 0%, 5.5 → 100%
-  const pct = Math.max(0, Math.min(1, (dr - 2.5) / 3.0)) * 100;
-  $("meter").style.width = `${pct}%`;
+
+  // Show formula for the last match
+  const lastH = state.history[state.history.length - 1];
+  // Rebuild dynPool up to before last match
+  let pool2 = [...state.trRatings.map(r => r.val)];
+  if (pool2.length === 0 && state.currentRating != null) pool2 = [state.currentRating];
+  for (let i = 0; i < state.history.length - 1; i++) {
+    const last3 = pool2.slice(-3);
+    const p = [state.history[i].mr, ...last3];
+    pool2.push(p.reduce((a,b) => a+b,0) / p.length);
+  }
+  const last3 = pool2.slice(-3);
+  const formulaParts = [lastH.mr.toFixed(2), ...last3.map(v => v.toFixed(2))];
+  $("dynFormula").textContent =
+    `(${formulaParts.join(" + ")}) ÷ ${formulaParts.length} = ${dr.toFixed(4)}`;
 }
 
-// Live-update dynamic rating when seed input changes
-$("myRating").addEventListener("input", renderDynamic);
-
-// ============ ACTIONS ============
+// ============ COMPUTE ============
 $("calcBtn").addEventListener("click", () => {
-  const form = readForm();
-  const err = validate(form);
+  const f = readForm(), err = validate(f);
   if (err) {
-    $("matchVal").innerHTML = `<span style="font-size: 32px; color: var(--loss);">⚠</span>`;
-    $("matchSub").style.color = "var(--loss)";
-    $("matchSub").textContent = err;
-    $("matchDelta").textContent = "";
-    return;
+    $("matchVal").innerHTML = `<span style="font-size:26px;color:var(--loss)">⚠</span>`;
+    $("matchSub").style.color = "var(--loss)"; $("matchSub").textContent = err;
+    $("deltaWrap").innerHTML = ""; return;
   }
   $("matchSub").style.color = "";
+  const curDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
+  const mr = calcMR({ ...f, myRating: curDyn ?? state.currentRating });
+  if (mr == null) { $("matchSub").textContent = "Score must have at least one game."; return; }
 
-  const seed = parseFloat($("myRating").value);
-  const seedVal = isNaN(seed) ? null : seed;
-  const currentDyn = dynamicRating(state.history, seedVal);
-  const r = matchRating({ ...form, myRating: currentDyn });
-
-  if (r == null) {
-    $("matchSub").style.color = "var(--loss)";
-    $("matchSub").textContent = "Score must include at least one game.";
-    $("matchDelta").textContent = "";
-    return;
-  }
-
-  // Always add to history so dynamic rating updates immediately
-  const scoreLabel = form.sets.map(([a,b]) => `${a}-${b}`).join(" ");
   state.history.push({
-    type: form.type,
-    wl: form.wl,
-    opp1: form.opp1,
-    opp2: form.type === "D" ? form.opp2 : null,
-    partner: form.type === "D" ? form.partner : null,
-    scoreLabel,
-    matchRating: r,
-    when: Date.now(),
+    type: f.type, wl: f.wl, opp1: f.opp1,
+    opp2: f.type === "D" ? f.opp2 : null,
+    partner: f.type === "D" ? f.partner : null,
+    scoreLabel: f.sets.map(([a,b]) => `${a}-${b}`).join(" "),
+    mr,
   });
-  persist();
+  save();
 
-  renderMatchRating(r);
+  renderMatchVal(mr);
 
-  // Build explanation
-  const oppBaseline = form.type === "S" ? form.opp1 : (form.opp1 + form.opp2 - form.partner);
-  if (currentDyn != null) {
-    $("matchSub").innerHTML =
-      `${PARAMS.w_opp.toFixed(2)}×opp(${oppBaseline.toFixed(2)}) + ${(1-PARAMS.w_opp).toFixed(2)}×you(${currentDyn.toFixed(2)}) + score = <strong>${r.toFixed(2)}</strong>`;
-  } else {
-    $("matchSub").innerHTML =
-      `Opp baseline ${oppBaseline.toFixed(2)} + score adj = <strong>${r.toFixed(2)}</strong> <em style="color:var(--muted);font-size:11px">(enter your rating for full accuracy)</em>`;
+  const bl = f.type === "S" ? f.opp1 : (f.opp1 + f.opp2 - f.partner);
+  const myR = curDyn ?? state.currentRating;
+  $("matchSub").textContent = myR != null
+    ? `opp ${bl.toFixed(2)} · you ${myR.toFixed(2)} · score adj → ${mr.toFixed(2)}`
+    : `opp baseline ${bl.toFixed(2)} + score → ${mr.toFixed(2)}`;
+
+  const newDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
+  if (newDyn != null) {
+    const delta = curDyn != null ? newDyn - curDyn : null;
+    const sign  = delta != null ? (delta >= 0 ? "+" : "") : "";
+    const cls   = delta != null && delta < 0 ? "delta-dn" : "delta-up";
+    const txt   = delta != null
+      ? `Rating ${sign}${delta.toFixed(4)} → ${newDyn.toFixed(4)}`
+      : `Dynamic rating → ${newDyn.toFixed(4)}`;
+    $("deltaWrap").innerHTML = `<div class="delta-pill ${cls}">${txt}</div>`;
   }
-
-  // New dynamic rating after this match
-  const newDyn = dynamicRating(state.history, seedVal);
-  if (currentDyn != null && newDyn != null) {
-    const mrDelta = r - currentDyn;
-    const raDelta = newDyn - currentDyn;
-    const mrSign = mrDelta >= 0 ? "+" : "−";
-    const raSign = raDelta >= 0 ? "+" : "−";
-    $("matchDelta").style.color = mrDelta >= 0 ? "var(--win)" : "var(--loss)";
-    $("matchDelta").innerHTML =
-      `Match: ${mrSign}${Math.abs(mrDelta).toFixed(2)} vs rating · Dynamic: ${raSign}${Math.abs(raDelta).toFixed(2)} → now ${newDyn.toFixed(4)}`;
-  } else if (newDyn != null) {
-    $("matchDelta").style.color = "var(--court)";
-    $("matchDelta").textContent = `Dynamic rating updated → ${newDyn.toFixed(4)}`;
-  }
-
-  $("dynArrow").style.display = "block";
-  renderHistory();
-  renderDynamic();
+  renderHistory(); renderDynamic();
 });
 
+// Clear
 $("clearBtn").addEventListener("click", () => {
-  if (state.history.length === 0) return;
-  if (!confirm("Clear all match history?")) return;
-  state.history = [];
-  persist();
-  $("dynArrow").style.display = "none";
-  $("matchDelta").textContent = "";
-  renderHistory();
-  renderDynamic();
+  if (!state.history.length && !state.trRatings.length && !state.currentRating) return;
+  if (!confirm("Clear all match history and loaded ratings?")) return;
+  state.history = []; state.trRatings = []; state.currentRating = null; save();
+  localStorage.removeItem("cm:cur");
+  $("trLink").value = "";
+  renderChips($("trChips"), []);
+  renderChips($("manualChips"), []);
+  setStatus($("trStatus"), "Loads your current rating + last 3 match ratings automatically.", "");
+  setStatus($("manualStatus"), "", "");
+  $("deltaWrap").innerHTML = ""; $("dynFormula").textContent = "";
+  renderHistory(); renderDynamic();
 });
 
-// initial render
-renderHistory();
-renderDynamic();
-
-// double-click history row to remove
-$("histList").addEventListener("dblclick", (e) => {
-  const row = e.target.closest(".history-row");
-  if (!row) return;
-  const idx = state.history.length - parseInt(row.querySelector(".idx").textContent);
-  state.history.splice(idx, 1);
-  persist();
-  renderHistory();
-  renderDynamic();
+// Tap/click to remove a history row
+$("histList").addEventListener("click", e => {
+  const row = e.target.closest(".history-row"); if (!row) return;
+  const idx = parseInt(row.dataset.idx, 10);
+  state.history.splice(idx, 1); save();
+  renderHistory(); renderDynamic();
 });
+
+// Init
+renderChips($("trChips"), state.trRatings); renderHistory(); renderDynamic();
 </script>
 </body>
 </html>
