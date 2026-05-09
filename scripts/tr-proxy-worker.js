@@ -63,6 +63,7 @@ export default {
         ratings.push({ date: dateCell, mr: parseFloat(mrCell) || null, ra: parseFloat(raCell) });
       }
 
+      // ratings array is newest-first (matches TR page order — most recent match at top)
       return new Response(
         JSON.stringify({ currentRating, ratings, year: parseInt(year), player: playerName }),
         { headers: corsHeaders }
