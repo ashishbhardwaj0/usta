@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -436,6 +435,28 @@ body {
   background: var(--court);
   border-radius: 50%;
 }
+/* FORMULA SELECTOR */
+.formula-selector {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.formula-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); display: block; margin-bottom: 6px;
+}
+.formula-selector select {
+  width: 100%; background: var(--paper-deep); border: 1px solid var(--rule);
+  padding: 9px 10px; font-family: "JetBrains Mono", monospace; font-size: 11px;
+  color: var(--ink); cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235b665e'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.formula-selector select:focus { outline: 0; border-color: var(--accent); }
+.formula-hint { font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--muted); margin-top: 5px; letter-spacing: 0.06em; }
+
 footer {
   margin-top: 40px; padding-top: 14px; border-top: 1px solid var(--rule);
   font-family: "JetBrains Mono", monospace; font-size: 8px;
@@ -461,8 +482,21 @@ footer {
     <!-- LEFT: INPUT -->
     <div class="card">
 
+      <!-- Formula selector -->
+      <div class="kicker">Step 1 · Choose formula</div>
+      <div class="formula-selector">
+        <label class="formula-label">Dynamic rating formula</label>
+        <select id="formulaSelect">
+          <option value="4">Relaxed &nbsp;·&nbsp; last 3 ratings + this match ÷ 4</option>
+          <option value="5">Conservative &nbsp;·&nbsp; last 4 ratings + this match ÷ 5</option>
+        </select>
+        <div class="formula-hint" id="formulaHint">
+          new rating = (match + current + prior₁ + prior₂) ÷ 4
+        </div>
+      </div>
+
       <!-- Step 1: TR Link or manual entry -->
-      <div class="kicker">Step 1 · Seed your rating history</div>
+      <div class="kicker" style="margin-top:16px;">Step 1 · Seed your rating history</div>
       <div class="tr-box">
         <div class="tr-tabs">
           <button class="tr-tab active" id="tabAuto">Auto — paste TR link</button>
@@ -476,25 +510,15 @@ footer {
             <input type="url" id="trLink" placeholder="https://www.tennisrecord.com/adult/profile.aspx?playername=… or matchhistory.aspx?playername=…" autocomplete="off" />
             <button class="tr-load-btn" id="trLoadBtn">Load →</button>
           </div>
-          <div class="tr-status" id="trStatus">Loads your current rating + last 3 match ratings automatically.</div>
+          <div class="tr-status" id="trStatus">Loads your current rating + prior match ratings automatically.</div>
           <div class="tr-chips" id="trChips"></div>
         </div>
 
-        <!-- MANUAL PANEL -->
+        <!-- MANUAL PANEL — inputs rendered dynamically based on formula -->
         <div id="panelManual" style="display:none;">
-          <div class="tr-box-label" style="margin-top:10px;">2 prior dynamic ratings (before your current rating above) — from the Rating column on TennisRecord, most recent first</div>
-          <div class="manual-3-row" style="grid-template-columns:1fr 1fr;">
-            <div class="manual-3-cell">
-              <div class="manual-3-label">1 match before</div>
-              <input type="number" id="m1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.88" inputmode="decimal" class="manual-input" />
-            </div>
-            <div class="manual-3-cell">
-              <div class="manual-3-label">2 matches before</div>
-              <input type="number" id="m2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.90" inputmode="decimal" class="manual-input" />
-            </div>
-          </div>
-          <button class="tr-load-btn" id="manualSaveBtn" style="margin-top:10px;width:100%;">Use these ratings →</button>
-          <div class="tr-status" id="manualStatus"></div>
+          <div class="tr-box-label" style="margin-top:10px;" id="manualLabel">Prior dynamic ratings (before your current rating) — from the Rating column on TennisRecord, most recent first</div>
+          <div class="manual-3-row" id="manualInputsRow"></div>
+          <div class="tr-status" id="manualStatus" style="margin-top:6px;"></div>
           <div class="tr-chips" id="manualChips"></div>
         </div>
       </div>
@@ -598,9 +622,9 @@ footer {
       <p><strong>Match rating (doubles):</strong><br><code>mr = 0.50 × (opp1 + opp2 − partner) + 0.50 × your_rating + 0.57 × gd_pct</code></p>
       <p><strong>Match rating (singles):</strong><br><code>mr = 0.50 × opp + 0.50 × your_rating + 0.13 × gd_pct</code></p>
       <p>where <code>gd_pct = (games_won − games_lost) / total_games</code></p>
-      <p><strong>Dynamic rating (after each match):</strong><br>
-      <code>dynamic = (mr_now + prev_rating_1 + prev_rating_2 + prev_rating_3) ÷ 4</code><br>
-      Fitted from all 2026 Ashish Bhardwaj matches — MAE 0.005, all predictions within 0.015 of TennisRecord.</p>
+      <p><strong>Dynamic rating — two modes:</strong><br>
+      <strong>Relaxed (÷4):</strong> <code>(match + current + prior₁ + prior₂) ÷ 4</code> — each match carries 25% weight, reacts quickly to wins and losses<br>
+      <strong>Conservative (÷5):</strong> <code>(match + current + prior₁ + prior₂ + prior₃) ÷ 5</code> — each match carries 20% weight, dampens swings from single outlier matches</p>
     </div>
   </div>
 
@@ -620,7 +644,14 @@ footer {
 // ============================================================
 // Coefficients fitted from all 7 Ashish 2026 doubles matches (known ra_prev + actual mr)
 // w=0.50 (50/50 opp baseline vs your rating), k_d=0.57, MAE=0.005, max err=0.014
-// Fitted from Ashish + Gaurav 2026 (21 matches): MAE=0.013, 95% within 0.05
+// ============================================================
+// ALGORITHM
+// Match rating: mr = 0.50*opp_bl + 0.50*your_rating + k*gd_pct
+//   Doubles k=0.57  |  Singles k=0.37
+// Dynamic rating: (mr + current + prior_1 + ... + prior_N) ÷ (N+2)
+//   poolSize=4: N=2 prior  →  (mr + current + p1 + p2) ÷ 4
+//   poolSize=5: N=3 prior  →  (mr + current + p1 + p2 + p3) ÷ 5
+// ============================================================
 const PARAMS = { k_s: 0.37, k_d: 0.57, w: 0.50 };
 
 const $ = id => document.getElementById(id);
@@ -658,23 +689,23 @@ function calcMR({ type, opp1, opp2, partner, sets, wl, myRating }) {
 // new_dynamic = (mr_now + prior_2 + prior_1 + currentRating) / 4
 
 function calcDynamic(trRatings, history, currentRating) {
-  // Seed pool: up to 2 older TR ratings + currentRating as most recent
+  // Seed pool: up to (poolSize-2) older TR ratings + currentRating as most recent
+  // poolSize=4 → need 2 prior  |  poolSize=5 → need 3 prior
   let seedPool = trRatings.map(r => r.val);
   if (currentRating != null && !isNaN(currentRating)) {
-    seedPool = [...seedPool, currentRating]; // currentRating is always the most recent seed
+    seedPool = [...seedPool, currentRating];
   }
   if (seedPool.length === 0 && history.length === 0) return null;
   if (seedPool.length === 0) return history[0].mr;
-
-  // Return current state if no session matches yet
   if (history.length === 0) return seedPool[seedPool.length - 1];
 
-  // Walk through session matches, averaging mr + last 3 pool values each time
+  // Walk through session matches
   let pool = seedPool.slice();
   let lastDyn = pool[pool.length - 1];
+  const N = state.poolSize; // total divisor including mr
   for (const h of history) {
-    const last3 = pool.slice(-3);
-    lastDyn = [h.mr, ...last3].reduce((a, b) => a + b, 0) / (1 + last3.length);
+    const lastN1 = pool.slice(-(N - 1)); // last (N-1) values
+    lastDyn = [h.mr, ...lastN1].reduce((a, b) => a + b, 0) / (1 + lastN1.length);
     pool.push(lastDyn);
   }
   return lastDyn;
@@ -683,13 +714,15 @@ function calcDynamic(trRatings, history, currentRating) {
 // ============ STATE ============
 const state = {
   mode: "D", wl: "W",
+  poolSize:      parseInt(localStorage.getItem("cm:poolSize")) || 4,  // 4 or 5
   trRatings:     JSON.parse(localStorage.getItem("cm:tr")   || "[]"),
   history:       JSON.parse(localStorage.getItem("cm:hist") || "[]"),
   currentRating: parseFloat(localStorage.getItem("cm:cur"))  || null,
 };
 const save = () => {
-  localStorage.setItem("cm:tr",   JSON.stringify(state.trRatings));
-  localStorage.setItem("cm:hist", JSON.stringify(state.history));
+  localStorage.setItem("cm:tr",       JSON.stringify(state.trRatings));
+  localStorage.setItem("cm:hist",     JSON.stringify(state.history));
+  localStorage.setItem("cm:poolSize", state.poolSize);
   if (state.currentRating != null) localStorage.setItem("cm:cur", state.currentRating);
 };
 
@@ -759,15 +792,17 @@ $("trLoadBtn").addEventListener("click", async () => {
     // currentRating (page header, 4dp) goes into Your Rating field.
     // Find the row that produced currentRating, then take the 2 rated rows after it.
     // This handles NC/S rows at the top correctly (they don't have their own ra).
+    // Find the row that produced currentRating, take nPrior() rated rows after it
     const curRounded = Math.round(currentRating * 100) / 100;
     let startIdx = ratings.findIndex(r => r.ra != null && Math.abs(r.ra - curRounded) < 0.006);
     if (startIdx === -1) startIdx = 0;
-    const prior2 = [];
-    for (let i = startIdx + 1; i < ratings.length && prior2.length < 2; i++) {
-      if (ratings[i].ra != null) prior2.push({ val: ratings[i].ra, date: ratings[i].date });
+    const nP = nPrior(); // 2 for ÷4, 3 for ÷5
+    const priorRows = [];
+    for (let i = startIdx + 1; i < ratings.length && priorRows.length < nP; i++) {
+      if (ratings[i].ra != null) priorRows.push({ val: ratings[i].ra, date: ratings[i].date });
     }
-    prior2.reverse(); // oldest first so pool = [older, newer, currentRating]
-    state.trRatings = prior2;
+    priorRows.reverse(); // oldest first
+    state.trRatings = priorRows;
     if (currentRating) {
       state.currentRating = currentRating;
       $("currentRatingInput").value = currentRating.toFixed(2);
@@ -791,27 +826,82 @@ $("trLoadBtn").addEventListener("click", async () => {
 });
 
 // ============ MANUAL SAVE ============
-$("manualSaveBtn").addEventListener("click", () => {
-  const r1 = parseFloat($("m1").value); // 1 match before current
-  const r2 = parseFloat($("m2").value); // 2 matches before current
+// ============ FORMULA SELECTOR ============
+const FORMULA_HINTS = {
+  4: "Relaxed · reacts quickly · (match + current + prior₁ + prior₂) ÷ 4",
+  5: "Conservative · dampens swings · (match + current + prior₁ + prior₂ + prior₃) ÷ 5",
+};
 
-  if (isNaN(r1) && isNaN(r2)) {
-    setStatus($("manualStatus"), "Enter at least one prior rating.", "err");
-    return;
+function nPrior() { return state.poolSize - 2; } // priors needed beyond currentRating
+
+function renderManualInputs() {
+  const n = nPrior(); // 2 for ÷4, 3 for ÷5
+  const labels = ["1 match before", "2 matches before", "3 matches before"];
+  const placeholders = ["e.g. 3.88", "e.g. 3.90", "e.g. 3.85"];
+  const cols = n === 2 ? "1fr 1fr" : "1fr 1fr 1fr";
+  const row = $("manualInputsRow");
+  row.style.gridTemplateColumns = cols;
+
+  // Save existing values before re-rendering
+  const existing = [];
+  for (let i = 1; i <= 3; i++) {
+    const el = $("m" + i);
+    existing.push(el ? el.value : "");
   }
 
-  // Build chronological pool: oldest first
-  const entries = [];
-  if (!isNaN(r2)) entries.push({ val: r2, date: "Prior −2" });
-  if (!isNaN(r1)) entries.push({ val: r1, date: "Prior −1" });
+  row.innerHTML = Array.from({ length: n }, (_, i) => `
+    <div class="manual-3-cell">
+      <div class="manual-3-label">${labels[i]}</div>
+      <input type="number" id="m${i+1}" step="0.01" min="2.0" max="5.5"
+        placeholder="${placeholders[i]}" inputmode="decimal" class="manual-input"
+        value="${existing[i] || ""}" />
+    </div>`).join("");
 
+  // Re-attach live listeners
+  for (let i = 1; i <= n; i++) {
+    $("m" + i).addEventListener("input", syncManualRatings);
+  }
+
+  $("manualLabel").textContent =
+    `${n} prior dynamic rating${n > 1 ? "s" : ""} (before your current rating) — ` +
+    `from the Rating column on TennisRecord, most recent first`;
+}
+
+function applyFormulaChoice(poolSize) {
+  state.poolSize = poolSize;
+  save();
+  $("formulaSelect").value = poolSize;
+  $("formulaHint").textContent = FORMULA_HINTS[poolSize];
+  renderManualInputs();
+  // Re-run TR load if we have data, adjusting how many priors to pull
+  if (state.trRatings.length > 0 || state.currentRating != null) {
+    renderChips($("trChips"), state.trRatings);
+    renderChips($("manualChips"), state.trRatings);
+    renderDynamic();
+  }
+}
+
+$("formulaSelect").addEventListener("change", () => {
+  applyFormulaChoice(parseInt($("formulaSelect").value));
+});
+
+// ============ MANUAL PRIOR RATINGS — live update ============
+function syncManualRatings() {
+  const n = nPrior();
+  const entries = [];
+  // Collect in reverse order so oldest goes first in array
+  for (let i = n; i >= 1; i--) {
+    const el = $("m" + i);
+    if (el) {
+      const v = parseFloat(el.value);
+      if (!isNaN(v)) entries.push({ val: v, date: `Prior −${i}` });
+    }
+  }
   state.trRatings = entries;
   save();
-
-  setStatus($("manualStatus"), `✓ ${entries.length} prior rating${entries.length !== 1 ? "s" : ""} saved. Combined with your current rating above for the 3-value seed.`, "ok");
   renderChips($("manualChips"), state.trRatings);
   renderDynamic();
-});
+}
 
 function setStatus(el, msg, cls) {
   el.textContent = msg;
@@ -948,14 +1038,14 @@ function renderDynamic(previewMR) {
 // Build the full pool: [prior_2, prior_1, currentRating] + computed dynamic after each session match
 function buildPool() {
   let pool = state.trRatings.map(p => ({ val: p.val, date: p.date, source: "tr" }));
-  // currentRating is always the most recent seed — append it last in the seed section
   if (state.currentRating != null && !isNaN(state.currentRating)) {
     pool = [...pool, { val: state.currentRating, date: "current", source: "current" }];
   }
   let runningPool = pool.map(p => p.val);
+  const N = state.poolSize;
   for (const h of state.history) {
-    const last3 = runningPool.slice(-3);
-    const dyn = [h.mr, ...last3].reduce((a, b) => a + b, 0) / (1 + last3.length);
+    const lastN1 = runningPool.slice(-(N - 1));
+    const dyn = [h.mr, ...lastN1].reduce((a, b) => a + b, 0) / (1 + lastN1.length);
     pool.push({ val: dyn, date: h.scoreLabel, source: "session" });
     runningPool.push(dyn);
   }
@@ -1128,6 +1218,7 @@ $("clearBtn").addEventListener("click", () => {
   state.history = []; state.trRatings = []; state.currentRating = null; save();
   localStorage.removeItem("cm:cur");
   $("trLink").value = "";
+  for (let i = 1; i <= 3; i++) { const el = $("m" + i); if (el) el.value = ""; }
   $("currentRatingInput").value = "";
   renderChips($("trChips"), []);
   renderChips($("manualChips"), []);
@@ -1157,6 +1248,14 @@ $("currentRatingInput").addEventListener("input", () => {
 // Restore persisted value on page load
 if (state.currentRating != null) {
   $("currentRatingInput").value = state.currentRating.toFixed(2);
+}
+// Init formula selector
+applyFormulaChoice(state.poolSize); // renders manual inputs and sets hint
+// Restore manual input values from trRatings (reverse: m1=most recent)
+const stored = state.trRatings;
+for (let i = 0; i < stored.length; i++) {
+  const el = $("m" + (stored.length - i));
+  if (el) el.value = stored[i].val;
 }
 
 // Init
