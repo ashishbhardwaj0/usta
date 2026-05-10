@@ -482,19 +482,15 @@ footer {
 
         <!-- MANUAL PANEL -->
         <div id="panelManual" style="display:none;">
-          <div class="tr-box-label" style="margin-top:10px;">Last 3 dynamic ratings — most recent first (from Rating column on TennisRecord)</div>
-          <div class="manual-3-row">
+          <div class="tr-box-label" style="margin-top:10px;">2 prior dynamic ratings (before your current rating above) — from the Rating column on TennisRecord, most recent first</div>
+          <div class="manual-3-row" style="grid-template-columns:1fr 1fr;">
             <div class="manual-3-cell">
-              <div class="manual-3-label">Most recent</div>
-              <input type="number" id="m1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.95" inputmode="decimal" class="manual-input" />
+              <div class="manual-3-label">1 match before</div>
+              <input type="number" id="m1" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.88" inputmode="decimal" class="manual-input" />
             </div>
             <div class="manual-3-cell">
-              <div class="manual-3-label">2nd recent</div>
-              <input type="number" id="m2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.88" inputmode="decimal" class="manual-input" />
-            </div>
-            <div class="manual-3-cell">
-              <div class="manual-3-label">3rd recent</div>
-              <input type="number" id="m3" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.85" inputmode="decimal" class="manual-input" />
+              <div class="manual-3-label">2 matches before</div>
+              <input type="number" id="m2" step="0.01" min="2.0" max="5.5" placeholder="e.g. 3.90" inputmode="decimal" class="manual-input" />
             </div>
           </div>
           <button class="tr-load-btn" id="manualSaveBtn" style="margin-top:10px;width:100%;">Use these ratings →</button>
@@ -508,9 +504,9 @@ footer {
 
       <!-- Prominent current rating field — pre-populated from TR load or manual entry -->
       <div class="field current-rating-field">
-        <label>Your rating</label>
+        <label>Your rating<br><span style="font-size:7px;letter-spacing:0.08em;color:var(--muted);font-weight:400;text-transform:none;">going into this match</span></label>
         <input type="number" id="currentRatingInput" step="0.01" min="2.0" max="5.5"
-          placeholder="e.g. 3.85 — loads from TR link"
+          placeholder="from TR · Rating col before this match"
           inputmode="decimal" />
       </div>
 
@@ -652,43 +648,35 @@ function calcMR({ type, opp1, opp2, partner, sets, wl, myRating }) {
   return bl + k * gdv;
 }
 
-// Dynamic rating = (mr_now + last_3_dynamic_ratings) / 4
-// state.trRatings holds up to 3 prior dynamic ratings (from TR page or manual entry)
-// These are the "Rating" column values — the player's dynamic rating AFTER each match
-// state.history holds matches logged this session, each with .mr (match rating)
+// Dynamic rating = (mr_now + currentRating + prior_1 + prior_2) / 4
 //
-// For each session match in order, we compute:
-//   new_dynamic = (mr_now + prev_dyn_1 + prev_dyn_2 + prev_dyn_3) / 4
-// where prev_dyn values are the 3 most recent dynamic ratings before this match.
-// The pool starts as state.trRatings, and each computed dynamic rating gets appended.
+// currentRating (Your Rating field) = the most recent dynamic rating GOING INTO
+// this match. It IS one of the 3 prior values. trRatings holds the 2 ratings
+// that came before it (older history from TR page).
+//
+// Pool order (oldest → newest): [prior_2, prior_1, currentRating]
+// new_dynamic = (mr_now + prior_2 + prior_1 + currentRating) / 4
 
 function calcDynamic(trRatings, history, currentRating) {
-  // Build the rolling pool of dynamic ratings.
-  // Seeds: trRatings are prior dynamic ratings (most authoritative).
-  // If we have currentRating but no trRatings, use it as the single seed.
-  let dynPool = trRatings.map(r => r.val); // up to 3 prior dynamic ratings
-
-  if (dynPool.length === 0 && currentRating != null && !isNaN(currentRating)) {
-    dynPool = [currentRating];
+  // Seed pool: up to 2 older TR ratings + currentRating as most recent
+  let seedPool = trRatings.map(r => r.val);
+  if (currentRating != null && !isNaN(currentRating)) {
+    seedPool = [...seedPool, currentRating]; // currentRating is always the most recent seed
   }
+  if (seedPool.length === 0 && history.length === 0) return null;
+  if (seedPool.length === 0) return history[0].mr;
 
-  if (history.length === 0) {
-    // No session matches yet — just return current state
-    if (dynPool.length === 0) return null;
-    return dynPool[dynPool.length - 1]; // most recent known dynamic rating
-  }
+  // Return current state if no session matches yet
+  if (history.length === 0) return seedPool[seedPool.length - 1];
 
-  // Walk through session matches, computing new dynamic rating after each
-  let lastDyn = null;
+  // Walk through session matches, averaging mr + last 3 pool values each time
+  let pool = seedPool.slice();
+  let lastDyn = pool[pool.length - 1];
   for (const h of history) {
-    // Take last 3 dynamic ratings from pool
-    const last3 = dynPool.slice(-3);
-    // Average: (mr_now + last 3 dynamic ratings) / (1 + last3.length)
-    const pool = [h.mr, ...last3];
-    lastDyn = pool.reduce((a, b) => a + b, 0) / pool.length;
-    dynPool.push(lastDyn);
+    const last3 = pool.slice(-3);
+    lastDyn = [h.mr, ...last3].reduce((a, b) => a + b, 0) / (1 + last3.length);
+    pool.push(lastDyn);
   }
-
   return lastDyn;
 }
 
@@ -766,10 +754,20 @@ $("trLoadBtn").addEventListener("click", async () => {
       return;
     }
 
-    // TR lists matches newest-first — take first 3 (most recent), reverse to chronological
-    const ratedRows = ratings.filter(r => r.ra != null);
-    const last3 = ratedRows.slice(0, 3).reverse();
-    state.trRatings = last3.map(r => ({ val: r.ra, date: r.date }));
+    // currentRating (page header) = most recent dynamic rating = goes in "Your Rating" field
+    // trRatings = the 2 ratings BEFORE that (older history)
+    // currentRating (page header, 4dp) goes into Your Rating field.
+    // Find the row that produced currentRating, then take the 2 rated rows after it.
+    // This handles NC/S rows at the top correctly (they don't have their own ra).
+    const curRounded = Math.round(currentRating * 100) / 100;
+    let startIdx = ratings.findIndex(r => r.ra != null && Math.abs(r.ra - curRounded) < 0.006);
+    if (startIdx === -1) startIdx = 0;
+    const prior2 = [];
+    for (let i = startIdx + 1; i < ratings.length && prior2.length < 2; i++) {
+      if (ratings[i].ra != null) prior2.push({ val: ratings[i].ra, date: ratings[i].date });
+    }
+    prior2.reverse(); // oldest first so pool = [older, newer, currentRating]
+    state.trRatings = prior2;
     if (currentRating) {
       state.currentRating = currentRating;
       $("currentRatingInput").value = currentRating.toFixed(2);
@@ -794,25 +792,23 @@ $("trLoadBtn").addEventListener("click", async () => {
 
 // ============ MANUAL SAVE ============
 $("manualSaveBtn").addEventListener("click", () => {
-  const r1 = parseFloat($("m1").value);
-  const r2 = parseFloat($("m2").value);
-  const r3 = parseFloat($("m3").value);
+  const r1 = parseFloat($("m1").value); // 1 match before current
+  const r2 = parseFloat($("m2").value); // 2 matches before current
 
-  if (isNaN(r1) && isNaN(r2) && isNaN(r3)) {
+  if (isNaN(r1) && isNaN(r2)) {
     setStatus($("manualStatus"), "Enter at least one prior rating.", "err");
     return;
   }
 
-  // Most recent first in inputs → reverse to chronological for the pool
+  // Build chronological pool: oldest first
   const entries = [];
-  if (!isNaN(r3)) entries.unshift({ val: r3, date: "Prior −3" });
-  if (!isNaN(r2)) entries.unshift({ val: r2, date: "Prior −2" });
-  if (!isNaN(r1)) entries.unshift({ val: r1, date: "Prior −1" });
+  if (!isNaN(r2)) entries.push({ val: r2, date: "Prior −2" });
+  if (!isNaN(r1)) entries.push({ val: r1, date: "Prior −1" });
 
   state.trRatings = entries;
   save();
 
-  setStatus($("manualStatus"), `✓ ${entries.length} prior rating${entries.length !== 1 ? "s" : ""} saved.`, "ok");
+  setStatus($("manualStatus"), `✓ ${entries.length} prior rating${entries.length !== 1 ? "s" : ""} saved. Combined with your current rating above for the 3-value seed.`, "ok");
   renderChips($("manualChips"), state.trRatings);
   renderDynamic();
 });
@@ -949,17 +945,17 @@ function renderDynamic(previewMR) {
   renderPool(previewMR);
 }
 
-// Build the full pool: trRatings + computed dynamic after each session match
+// Build the full pool: [prior_2, prior_1, currentRating] + computed dynamic after each session match
 function buildPool() {
-  let pool = state.trRatings.map(r => ({ val: r.val, date: r.date, source: "tr" }));
-  if (pool.length === 0 && state.currentRating != null) {
-    pool = [{ val: state.currentRating, date: "current", source: "tr" }];
+  let pool = state.trRatings.map(p => ({ val: p.val, date: p.date, source: "tr" }));
+  // currentRating is always the most recent seed — append it last in the seed section
+  if (state.currentRating != null && !isNaN(state.currentRating)) {
+    pool = [...pool, { val: state.currentRating, date: "current", source: "current" }];
   }
   let runningPool = pool.map(p => p.val);
   for (const h of state.history) {
     const last3 = runningPool.slice(-3);
-    const p = [h.mr, ...last3];
-    const dyn = p.reduce((a,b) => a+b,0) / p.length;
+    const dyn = [h.mr, ...last3].reduce((a, b) => a + b, 0) / (1 + last3.length);
     pool.push({ val: dyn, date: h.scoreLabel, source: "session" });
     runningPool.push(dyn);
   }
@@ -1032,14 +1028,43 @@ function computeMR() {
 
 function showResult({ f, mr, curDyn }, saved) {
   renderMatchVal(mr);
-  const bl = f.type === "S" ? f.opp1 : (f.opp1 + f.opp2 - f.partner);
-  const myR = curDyn ?? state.currentRating;
-  $("matchSub").textContent = myR != null
-    ? `opp ${bl.toFixed(2)} · you ${myR.toFixed(2)} · score adj → ${mr.toFixed(2)}`
-    : `opp baseline ${bl.toFixed(2)} + score → ${mr.toFixed(2)}`;
+  const bl    = f.type === "S" ? f.opp1 : (f.opp1 + f.opp2 - f.partner);
+  const myR   = curDyn ?? state.currentRating;
+  const k     = f.type === "S" ? PARAMS.k_s : PARAMS.k_d;
+  const gw_gl = (() => { let gw=0,gl=0; for(const [a,b] of f.sets){gw+=a;gl+=b;} if(f.wl==="L")[gw,gl]=[gl,gw]; return {gw,gl}; })();
+  const tot   = gw_gl.gw + gw_gl.gl;
+  const gd    = tot > 0 ? (gw_gl.gw - gw_gl.gl) / tot : 0;
+  const scoreAdj = k * gd;
+
+  // Explicit step-by-step formula line
+  if (myR != null) {
+    const oppTerm   = (PARAMS.w * bl).toFixed(3);
+    const youTerm   = ((1 - PARAMS.w) * myR).toFixed(3);
+    const scoreTerm = scoreAdj >= 0
+      ? `+${scoreAdj.toFixed(3)}`
+      : scoreAdj.toFixed(3);
+    $("matchSub").innerHTML =
+      `<span style="opacity:0.7">½×opp(${bl.toFixed(2)})=${oppTerm}</span> ` +
+      `<span style="opacity:0.7">+ ½×you(<strong style="color:var(--ink)">${myR.toFixed(2)}</strong>)=${youTerm}</span> ` +
+      `<span style="opacity:0.7">+ score=${scoreTerm}</span> ` +
+      `= <strong>${mr.toFixed(4)}</strong>`;
+
+    // Warn if the user's typed rating differs from what calcDynamic computed
+    const manualRating = parseFloat($("currentRatingInput").value);
+    const dynComputed  = calcDynamic(state.trRatings, state.history, null); // without currentRating override
+    if (!isNaN(manualRating) && dynComputed != null &&
+        Math.abs(manualRating - dynComputed) > 0.005 &&
+        state.history.length === 0) {
+      $("matchSub").innerHTML +=
+        `<div style="color:var(--loss);font-size:9px;margin-top:4px;letter-spacing:0.1em;">` +
+        `⚠ YOUR RATING FIELD (${manualRating.toFixed(2)}) OVERRIDES THE SEEDED VALUE (${dynComputed.toFixed(2)}) — ` +
+        `make sure you're using the rating from BEFORE this match, not your latest rating.</div>`;
+    }
+  } else {
+    $("matchSub").textContent = `opp baseline ${bl.toFixed(2)} + score adj → ${mr.toFixed(4)}`;
+  }
 
   if (saved) {
-    // Confirmed — show actual dynamic, no preview
     const newDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
     const delta  = curDyn != null && newDyn != null ? newDyn - curDyn : null;
     if (delta != null) {
@@ -1047,9 +1072,8 @@ function showResult({ f, mr, curDyn }, saved) {
       const cls  = delta < 0 ? "delta-dn" : "delta-up";
       $("deltaWrap").innerHTML = `<div class="delta-pill ${cls}">Saved · rating ${sign}${delta.toFixed(4)} → ${newDyn.toFixed(4)}</div>`;
     }
-    renderDynamic();       // no preview arg — clears preview display
+    renderDynamic();
   } else {
-    // Preview mode — pass mr so renderDynamic shows the provisional value
     $("deltaWrap").innerHTML = "";
     renderDynamic(mr);
   }
