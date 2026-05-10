@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -499,12 +500,20 @@ footer {
       <div class="kicker" style="margin-top:16px;">Step 1 · Seed your rating history</div>
       <div class="tr-box">
         <div class="tr-tabs">
-          <button class="tr-tab active" id="tabAuto">Auto — paste TR link</button>
-          <button class="tr-tab" id="tabManual">Manual — enter ratings</button>
+          <button class="tr-tab active" id="tabManual">Manual — enter ratings</button>
+          <button class="tr-tab" id="tabAuto">Auto — paste TR link</button>
         </div>
 
-        <!-- AUTO PANEL -->
-        <div id="panelAuto">
+        <!-- MANUAL PANEL — shown by default -->
+        <div id="panelManual">
+          <div class="tr-box-label" style="margin-top:10px;" id="manualLabel">Prior dynamic ratings (before your current rating) — from the Rating column on TennisRecord, most recent first</div>
+          <div class="manual-3-row" id="manualInputsRow"></div>
+          <div class="tr-status" id="manualStatus" style="margin-top:6px;"></div>
+          <div class="tr-chips" id="manualChips"></div>
+        </div>
+
+        <!-- AUTO PANEL — hidden by default -->
+        <div id="panelAuto" style="display:none;">
           <div class="tr-box-label" style="margin-top:10px;">Paste your TennisRecord match history link</div>
           <div class="tr-input-row">
             <input type="url" id="trLink" placeholder="https://www.tennisrecord.com/adult/profile.aspx?playername=… or matchhistory.aspx?playername=…" autocomplete="off" />
@@ -512,14 +521,6 @@ footer {
           </div>
           <div class="tr-status" id="trStatus">Loads your current rating + prior match ratings automatically.</div>
           <div class="tr-chips" id="trChips"></div>
-        </div>
-
-        <!-- MANUAL PANEL — inputs rendered dynamically based on formula -->
-        <div id="panelManual" style="display:none;">
-          <div class="tr-box-label" style="margin-top:10px;" id="manualLabel">Prior dynamic ratings (before your current rating) — from the Rating column on TennisRecord, most recent first</div>
-          <div class="manual-3-row" id="manualInputsRow"></div>
-          <div class="tr-status" id="manualStatus" style="margin-top:6px;"></div>
-          <div class="tr-chips" id="manualChips"></div>
         </div>
       </div>
 
@@ -727,17 +728,17 @@ const save = () => {
 };
 
 // ============ TR TABS ============
-$("tabAuto").addEventListener("click", () => {
-  $("tabAuto").classList.add("active");
-  $("tabManual").classList.remove("active");
-  $("panelAuto").style.display = "";
-  $("panelManual").style.display = "none";
-});
 $("tabManual").addEventListener("click", () => {
   $("tabManual").classList.add("active");
   $("tabAuto").classList.remove("active");
   $("panelManual").style.display = "";
   $("panelAuto").style.display = "none";
+});
+$("tabAuto").addEventListener("click", () => {
+  $("tabAuto").classList.add("active");
+  $("tabManual").classList.remove("active");
+  $("panelAuto").style.display = "";
+  $("panelManual").style.display = "none";
 });
 
 // ============ TR LOADER ============
