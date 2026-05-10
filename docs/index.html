@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -1179,7 +1178,7 @@ $("previewBtn").addEventListener("click", () => {
   $("saveBtn")._pending = result;
 });
 
-// SAVE — commits the previewed match to history and updates current rating field
+// SAVE — commits the previewed match to history and slides the rating window forward
 $("saveBtn").addEventListener("click", () => {
   const result = $("saveBtn")._pending;
   if (!result) return;
@@ -1193,17 +1192,52 @@ $("saveBtn").addEventListener("click", () => {
   });
   save();
 
-  // New confirmed dynamic rating becomes the new "current rating"
+  // Compute the new confirmed dynamic rating
   const newDyn = calcDynamic(state.trRatings, state.history, state.currentRating);
   if (newDyn != null) {
+    // Slide the window forward:
+    // newDyn      → new currentRating
+    // currentRating → new prior₁ (most recent prior)
+    // prior₁      → new prior₂
+    // prior₂ (oldest, if ÷5) → dropped
+    const nP = nPrior(); // 2 for Relaxed, 3 for Conservative
+    const oldCurrent = state.currentRating;
+
+    // Slide window forward — append oldCurrent as newest prior, drop oldest from front
+    // trRatings is oldest-first: [prior_oldest, ..., prior_1]
+    // After slide: [...trRatings, oldCurrent].slice(-nP)
+    // → oldest drops off the front, oldCurrent becomes the most recent prior
+    const newPriors = [
+      ...state.trRatings,
+      ...(oldCurrent != null ? [{ val: oldCurrent, date: "Prior −1" }] : []),
+    ].slice(-nP);
+
+    state.trRatings = newPriors;
     state.currentRating = newDyn;
+    // Clear session history — it's now baked into the new seed pool
+    state.history = [];
+    save();
+
+    // Update currentRatingInput with flash
     $("currentRatingInput").value = newDyn.toFixed(2);
-    // Flash the field green
     const field = $("currentRatingInput").closest(".current-rating-field");
     field.classList.remove("just-loaded");
     void field.offsetWidth;
     field.classList.add("just-loaded");
-    save();
+
+    // Update manual input fields to reflect the new window
+    const inputs = ["m1", "m2", "m3"];
+    for (let i = 0; i < 3; i++) {
+      const el = $(inputs[i]);
+      if (!el) continue;
+      // m1 = most recent prior (index nP-1), m2 = next, etc.
+      const priorIdx = nP - 1 - i; // newPriors is oldest-first, m1 is most recent
+      el.value = newPriors[priorIdx] != null ? newPriors[priorIdx].val.toFixed(2) : "";
+    }
+
+    // Update chips in both panels
+    renderChips($("trChips"), state.trRatings);
+    renderChips($("manualChips"), state.trRatings);
   }
 
   $("saveBtn").style.display = "none";
